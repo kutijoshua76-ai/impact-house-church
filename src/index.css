@@ -1,0 +1,226 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Default/Dark Theme (Midnight/Rose Gold) */
+  :root, .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 12 45% 72%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 222 47% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 47% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 12 35% 85%;
+    --accent-foreground: 222 47% 6%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 40% 20%;
+    --input: 222 40% 20%;
+    --ring: 12 45% 72%;
+
+    --radius: 0.75rem;
+
+    --midnight: 222 47% 6%;
+    --rose-gold: 12 45% 72%;
+    --rose-gold-light: 12 35% 85%;
+    --rose-gold-muted: 12 25% 60%;
+  }
+
+  /* Light Theme */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 10%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 10%;
+
+    --popover: 0 0% 98%;
+    --popover-foreground: 222 47% 10%;
+
+    --primary: 12 55% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 20% 90%;
+    --secondary-foreground: 222 47% 10%;
+
+    --muted: 222 20% 90%;
+    --muted-foreground: 215 20% 40%;
+
+    --accent: 12 55% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 222 20% 90%;
+    --input: 222 20% 90%;
+    --ring: 12 55% 60%;
+
+    --midnight: 0 0% 98%;
+    --rose-gold: 12 55% 60%;
+    --rose-gold-light: 12 45% 72%;
+    --rose-gold-muted: 12 35% 80%;
+  }
+
+  /* Solarized Theme */
+  .solarized {
+    --background: 44 87% 94%;
+    --foreground: 192 100% 22%;
+
+    --card: 44 87% 92%;
+    --card-foreground: 192 100% 22%;
+
+    --popover: 44 87% 92%;
+    --popover-foreground: 192 100% 22%;
+
+    --primary: 175 59% 40%;
+    --primary-foreground: 44 87% 94%;
+
+    --secondary: 42 12% 80%;
+    --secondary-foreground: 192 100% 22%;
+
+    --muted: 42 12% 80%;
+    --muted-foreground: 192 100% 35%;
+
+    --accent: 175 59% 40%;
+    --accent-foreground: 44 87% 94%;
+
+    --border: 42 12% 80%;
+    --input: 42 12% 80%;
+    --ring: 175 59% 40%;
+
+    --midnight: 44 87% 92%;
+    --rose-gold: 175 59% 40%;
+    --rose-gold-light: 175 45% 50%;
+    --rose-gold-muted: 175 35% 60%;
+  }
+
+  /* Vivid Theme */
+  .vivid {
+    --background: 260 60% 10%;
+    --foreground: 0 0% 100%;
+
+    --card: 260 60% 15%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 260 60% 15%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 310 100% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 260 40% 25%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 260 40% 25%;
+    --muted-foreground: 260 20% 70%;
+
+    --accent: 310 100% 70%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 260 40% 25%;
+    --input: 260 40% 25%;
+    --ring: 310 100% 60%;
+
+    --midnight: 260 60% 12%;
+    --rose-gold: 310 100% 60%;
+    --rose-gold-light: 310 100% 70%;
+    --rose-gold-muted: 310 70% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
+    overflow-wrap: break-word;
+  }
+
+  p, span, a, button, li, label, input, textarea {
+    font-family: 'Source Sans 3', sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    /* Fallback for older browsers */
+    word-wrap: break-word;
+    @supports (text-wrap: balance) {
+      text-wrap: balance;
+    }
+  }
+
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.glassmorphic {
+  background-color: hsl(var(--midnight) / 0.4);
+  @apply backdrop-blur-md border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+}
+
+.text-rose-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-rose-gold to-rose-gold-light;
+}
