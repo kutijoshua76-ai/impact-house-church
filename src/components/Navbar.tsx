@@ -115,7 +115,7 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {open && (
-        <div className="lg:hidden absolute top-full left-0 right-0 mt-4 glassmorphic rounded-2xl overflow-hidden animate-fade-in border border-white/5 shadow-2xl max-h-[50vh] overflow-y-auto custom-scrollbar">
+        <div className="lg:hidden absolute top-full left-0 right-0 mt-4 bg-[#0a0a0a] rounded-2xl overflow-hidden animate-fade-in border border-white/10 shadow-2xl max-h-[50vh] overflow-y-auto custom-scrollbar">
           <ul className="flex flex-col gap-1 px-2 py-3">
             {navLinks.map((link) => (
               <li key={link.label}>
