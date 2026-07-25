@@ -1,4 +1,4 @@
-import { Moon, Sun, Monitor, Palette } from "lucide-react";
+import { Moon, Sun, Monitor, Palette, Flame } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 
 export function ThemeSwitcher() {
@@ -9,6 +9,7 @@ export function ThemeSwitcher() {
     { name: "light", icon: Sun, label: "Daylight" },
     { name: "solarized", icon: Monitor, label: "Solarized" },
     { name: "vivid", icon: Palette, label: "Vivid" },
+    { name: "haven", icon: Flame, label: "Haven" },
   ] as const;
 
   return (

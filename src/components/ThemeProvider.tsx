@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "solarized" | "vivid";
+type Theme = "dark" | "light" | "solarized" | "vivid" | "haven";
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -31,7 +31,7 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement;
 
-    root.classList.remove("light", "dark", "solarized", "vivid");
+    root.classList.remove("light", "dark", "solarized", "vivid", "haven");
 
     // "dark" is the default unclassed theme in index.css, but we can also just add the class
     if (theme === "dark") {

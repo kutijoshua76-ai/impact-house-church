@@ -1,3 +1,4 @@
+import BackgroundWatermark from "@/components/BackgroundWatermark";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -5,6 +6,9 @@ import zonalPastor from "@/assets/province-pastor.jpg";
 import pastorWife from "@/assets/pastor-wife.jpg";
 import generalOverseer from "@/assets/general-overseer.jpg";
 import rccgLogo from "@/assets/rccg-logo.png";
+import pastorDami from "@/assets/church-photos/1001871934.jpg";
+import pastorDoyin from "@/assets/church-photos/1001871990.jpg";
+import pastorKehinde from "@/assets/church-photos/1001871952.jpg";
 
 const leaders = [
   {
@@ -22,22 +26,38 @@ const leaders = [
 ];
 
 const otherMinisters = [
-  { name: "Pastor Kehinde Adeyele (Kaytom)", role: "Assistant Zonal Pastor" },
-  { name: "Pastor Dami Olajide", role: "Youth Pastor" },
-  { name: "Pastor Mrs. Doyin Olatunji", role: "Women's Fellowship Coordinator" },
+  {
+    name: "Pastor Kehinde Adeyele (Kaytom)",
+    role: "Assistant Parish Pastor",
+    image: pastorKehinde,
+    bio: "Serving faithfully as the Assistant Parish Pastor, helping guide the spiritual growth and administrative leadership of the parish."
+  },
+  {
+    name: "Pastor Dami Olajide",
+    role: "Youth Pastor",
+    image: pastorDami,
+    bio: "A dynamic and passionate leader, Pastor Dami Olajide serves as the Youth Pastor at RCCG Impact House. He is dedicated to raising and empowering the next generation to live purposefully, walk in faith, and make a lasting global impact through spiritual growth and leadership development."
+  },
+  {
+    name: "Pastor Mrs. Doyin Olatunji",
+    role: "Women's Fellowship Coordinator",
+    image: pastorDoyin,
+    bio: "Leading and nurturing the women's fellowship to build strong, prayerful, and purpose-driven families in Christ."
+  },
 ];
+
+const getInitial = (name: string) => {
+  const cleanName = name.replace(/\([^)]*\)/g, "").trim();
+  const parts = cleanName.split(/\s+/);
+  const titles = ["Pastor", "Mrs", "Mrs.", "Mr", "Mr.", "Evang", "Evang.", "Dr", "Dr.", "Sister", "Brother"];
+  const namePart = parts.find(p => !titles.includes(p)) || parts[parts.length - 1];
+  return namePart?.[0]?.toUpperCase() || "?";
+};
 
 const Leaders = () => {
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
-      {/* Background Watermark */}
-      <div className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden">
-        <img
-          src={rccgLogo}
-          alt=""
-          className="w-[120%] max-w-none opacity-[0.07] dark:opacity-[0.1] grayscale rotate-[15deg]"
-        />
-      </div>
+      <BackgroundWatermark />
 
       <Navbar />
 
@@ -61,7 +81,7 @@ const Leaders = () => {
         </div>
       </section>
 
-      {/* Zonal Pastor — headline feature */}
+      {/* Lead Pastor — headline feature */}
       <section className="py-32 relative overflow-hidden">
         <div className="max-w-6xl mx-auto px-6">
           <ScrollReveal>
@@ -70,27 +90,27 @@ const Leaders = () => {
                 <div className="absolute -inset-4 glassmorphic rounded-3xl -rotate-2 scale-95 opacity-50" />
                 <img
                   src={zonalPastor}
-                  alt="Zonal Pastor"
+                  alt="Lead Pastor"
                   className="relative rounded-2xl shadow-2xl w-full aspect-[3/4] object-cover"
                 />
               </div>
               <div className="md:col-span-3 space-y-8">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-rose-gold mb-4 block">Zonal Pastor</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-rose-gold mb-4 block">Current Lead Pastor</span>
                   <h2 className="font-serif text-4xl sm:text-5xl font-bold text-foreground mb-6 leading-tight">
                     Pastor Enoch <span className="text-rose-gold italic">Olatunji</span>
                   </h2>
-                  <p className="text-xl text-rose-gold/80 font-medium mb-10 tracking-wide">Zonal Pastor, RCCG Impact Zonal Parish</p>
+                  <p className="text-xl text-rose-gold/80 font-medium mb-10 tracking-wide">Lead Pastor, RCCG Impact House Zonal Parish</p>
 
                   <div className="space-y-6 text-foreground/70 leading-relaxed font-medium text-lg">
                     <p>
                       Pastor Enoch Olatunji is a man of deep faith, unwavering vision, and compassionate leadership. Called into ministry at a young age, he has dedicated his life to the service of God and the nurturing of His people.
                     </p>
                     <p>
-                      Under his leadership, the zone has witnessed tremendous growth. His passion for youth development and community transformation has been the driving force behind many of the church's most impactful programmes.
+                      Under his leadership, the church has witnessed tremendous growth. His passion for youth development and community transformation has been the driving force behind many of the church's most impactful programmes.
                     </p>
                     <p>
-                      He is happily married to Pastor (Mrs.) D.O. Olatunji, and together they lead the zonal parish with grace, unity, and an infectious love for God and His people.
+                      He is happily married to Pastor (Mrs.) D.O. Olatunji, and together they lead the parish with grace, unity, and an infectious love for God and His people.
                     </p>
                   </div>
                 </div>
@@ -116,7 +136,7 @@ const Leaders = () => {
             {leaders.map((leader, i) => (
               <ScrollReveal key={leader.name} delay={i * 120}>
                 <div className="group glassmorphic rounded-[2.5rem] overflow-hidden hover:translate-y-[-8px] transition-all duration-500 hover:border-rose-gold/30">
-                  <div className="aspect-[4/3] overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700">
+                  <div className="aspect-[4/3] overflow-hidden transition-all duration-700">
                     <img
                       src={leader.image}
                       alt={leader.name}
@@ -151,15 +171,26 @@ const Leaders = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 md:max-w-4xl mx-auto gap-8">
             {otherMinisters.map((m, i) => (
               <ScrollReveal key={m.name} delay={i * 80}>
-                <div className="glassmorphic rounded-2xl p-8 hover:bg-foreground/5 transition-all duration-300 group">
-                  <div className="w-12 h-12 rounded-xl bg-foreground/5 border border-foreground/10 flex items-center justify-center mb-6 group-hover:bg-rose-gold group-hover:border-rose-gold transition-all duration-500">
-                    <span className="font-serif font-bold text-rose-gold text-lg group-hover:text-midnight transition-colors">
-                      {m.name.split(" ").pop()?.[0]}
-                    </span>
+                <div className="group glassmorphic rounded-[2.5rem] overflow-hidden hover:translate-y-[-8px] transition-all duration-500 hover:border-rose-gold/30 flex flex-col h-full text-left">
+                  <div className="aspect-[4/3] overflow-hidden transition-all duration-700 bg-foreground/5 flex items-center justify-center relative">
+                    {m.image ? (
+                      <img
+                        src={m.image}
+                        alt={m.name}
+                        className="w-full h-full object-cover object-top scale-105 group-hover:scale-110 transition-transform duration-700"
+                      />
+                    ) : (
+                      <span className="font-serif font-bold text-rose-gold/45 text-5xl group-hover:scale-110 transition-transform duration-700">
+                        {getInitial(m.name)}
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <h3 className="font-serif text-lg font-bold text-foreground mb-2">{m.name}</h3>
-                    <p className="text-foreground/65 text-xs uppercase tracking-widest font-medium">{m.role}</p>
+                  <div className="p-10 space-y-4 flex-1 flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <h3 className="font-serif text-2xl font-bold text-foreground group-hover:text-rose-gold transition-colors duration-300">{m.name}</h3>
+                      <p className="text-rose-gold/60 text-sm font-bold uppercase tracking-widest">{m.role}</p>
+                      <p className="text-foreground/65 text-sm leading-relaxed font-medium">{m.bio}</p>
+                    </div>
                   </div>
                 </div>
               </ScrollReveal>

@@ -1,20 +1,13 @@
+import BackgroundWatermark from "@/components/BackgroundWatermark";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import { churchPhotos } from "@/assets/church-photos";
-import rccgLogo from "@/assets/rccg-logo.png";
 
 const About = () => {
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
-      {/* Background Watermark */}
-      <div className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden">
-        <img 
-          src={rccgLogo} 
-          alt="" 
-          className="w-[120%] max-w-none opacity-[0.07] dark:opacity-[0.1] grayscale rotate-[-15deg]"
-        />
-      </div>
+      <BackgroundWatermark />
       
       <Navbar />
 

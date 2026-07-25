@@ -17,7 +17,11 @@ const Footer = () => (
             <li><Link to="/" className="hover:text-rose-gold transition-colors duration-200">Home</Link></li>
             <li><Link to="/about" className="hover:text-rose-gold transition-colors duration-200">About Us</Link></li>
             <li><Link to="/leaders" className="hover:text-rose-gold transition-colors duration-200">Our Leaders</Link></li>
+            <li><Link to="/first-timer" className="hover:text-rose-gold transition-colors duration-200">First Timer</Link></li>
+            <li><Link to="/join-workforce" className="hover:text-rose-gold transition-colors duration-200">Join the Workforce</Link></li>
+            <li><Link to="/testimony" className="hover:text-rose-gold transition-colors duration-200">Testimonies</Link></li>
             <li><Link to="/contact" className="hover:text-rose-gold transition-colors duration-200">Contact</Link></li>
+            <li><Link to="/csr" className="hover:text-rose-gold transition-colors duration-200">CSR</Link></li>
           </ul>
         </div>
         <div className="space-y-4">

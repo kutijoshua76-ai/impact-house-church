@@ -1,27 +1,89 @@
+import BackgroundWatermark from "@/components/BackgroundWatermark";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
-import { Mail, Phone, MessageCircle, Facebook, Instagram, Youtube, MapPin } from "lucide-react";
-import rccgLogo from "@/assets/rccg-logo.png";
+import { Mail, Phone, MessageCircle, Facebook, Instagram, Youtube, MapPin, Send, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
+import BorderGlow from "@/components/ui/border-glow";
 
 const socialLinks = [
-  { icon: MessageCircle, label: "WhatsApp Group", href: "https://chat.whatsapp.com/", color: "bg-green-600" },
-  { icon: Facebook, label: "Facebook", href: "https://www.facebook.com/share/18JkK3mSsk/", color: "bg-blue-700" },
-  { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/rccg_imh?igsh=dzF4YXE3MTh0Y3Iy", color: "bg-pink-600" },
-  { icon: Youtube, label: "YouTube", href: "https://youtube.com/@rccgimpacthouse?si=hvdckZIWnKjwiEgt", color: "bg-red-600" },
+  { 
+    icon: (props: React.SVGProps<SVGSVGElement>) => (
+      <svg {...props} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 0 1 3.183-4.51v-3.5a6.329 6.329 0 0 0-3.905 1.33 6.332 6.332 0 1 0 10.866 4.363V9.624a11.233 11.233 0 0 0 6.136 1.839V8a4.793 4.793 0 0 1-3.864-1.314z"/>
+      </svg>
+    ), 
+    label: "TikTok", 
+    href: "https://www.tiktok.com/@rccgimpacthouse?_r=1&_t=ZS-95hjzp2Trho", 
+    color: "bg-black",
+    glowColor: "180 80 50",
+    colors: ['#00f2fe', '#4facfe', '#000000']
+  },
+  { icon: Facebook, label: "Facebook", href: "https://www.facebook.com/share/18JkK3mSsk/", color: "bg-blue-700", glowColor: "220 90 60", colors: ['#3b82f6', '#60a5fa', '#1d4ed8'] },
+  { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/rccg_imh?igsh=dzF4YXE3MTh0Y3Iy", color: "bg-pink-600", glowColor: "330 81 60", colors: ['#c084fc', '#ec4899', '#f43f5e'] },
+  { icon: Youtube, label: "YouTube", href: "https://youtube.com/@rccgimpacthouse?si=hvdckZIWnKjwiEgt", color: "bg-red-600", glowColor: "0 84 50", colors: ['#ef4444', '#f87171', '#b91c1c'] },
 ];
 
 const Contact = () => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: ""
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Terminal Logging
+    console.log("%c[FORM_SUBMISSION]", "color: #e2b091; font-weight: bold", {
+      form: "Contact Form",
+      timestamp: new Date().toISOString(),
+      data: formData
+    });
+
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([{
+          full_name: formData.name,
+          email: formData.email,
+          message: formData.message
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Message Broadcasted!",
+        description: "Thank you for reaching out. We have received your message and will get back to you shortly.",
+      });
+
+      // Also trigger mailto as a fallback/secondary action if needed, 
+      // but usually saving to DB is enough for a modern app.
+      // We'll keep it simple and just save to DB for now as requested.
+
+      setFormData({ name: "", email: "", message: "" });
+    } catch (error) {
+      const err = error as Error;
+      console.error("[FORM_ERROR]", err);
+      toast({
+        variant: "destructive",
+        title: "Broadcast Failed",
+        description: err.message || "An error occurred while sending your message. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
-      {/* Background Watermark */}
-      <div className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden">
-        <img 
-          src={rccgLogo} 
-          alt="" 
-          className="w-[120%] max-w-none opacity-[0.07] dark:opacity-[0.1] grayscale"
-        />
-      </div>
+      <BackgroundWatermark />
 
       <Navbar />
 
@@ -62,32 +124,64 @@ const Contact = () => {
               
               <div className="grid gap-6">
                 {[
-                  { icon: Phone, title: "Call Us", val: "+234 801 234 5678", href: "tel:+2348012345678" },
-                  { icon: Mail, title: "Email Us", val: "info@rccgimpacthouse.org", href: "mailto:info@rccgimpacthouse.org" },
-                  { icon: MapPin, title: "Visit Us", val: "Lagos, Nigeria", href: null },
+                  { 
+                    icon: Phone, 
+                    title: "Call Us", 
+                    links: [
+                      { label: "07032578382", href: "tel:07032578382" },
+                      { label: "08062475927", href: "tel:08062475927" }
+                    ]
+                  },
+                  { 
+                    icon: Mail, 
+                    title: "Email Us", 
+                    links: [{ label: "info@rccgimpacthouse.org", href: "mailto:info@rccgimpacthouse.org" }]
+                  },
+                  { 
+                    icon: MapPin, 
+                    title: "Visit Us", 
+                    links: [{ label: "Ado-ekiti, Ekiti state, Nigeria.", href: "https://www.google.com/maps/search/Ado-ekiti,+Ekiti+state,+Nigeria" }]
+                  },
                 ].map((item) => (
-                  <div key={item.title} className="group glassmorphic p-8 rounded-3xl hover:border-rose-gold/30 transition-all duration-500">
-                    <div className="flex items-center gap-6">
+                  <BorderGlow
+                    key={item.title}
+                    edgeSensitivity={20}
+                    glowColor="12 45 72" // Rose gold HSL
+                    backgroundColor="hsl(var(--midnight) / 0.4)"
+                    borderRadius={24} // rounded-3xl is 24px
+                    glowRadius={40}
+                    glowIntensity={1.0}
+                    colors={['#e2b091', '#ecc7b0', '#c28562']}
+                    fillOpacity={0.06}
+                    className="group border border-white/5 hover:border-transparent transition-all duration-300"
+                  >
+                    <div className="p-8 flex items-center gap-6 relative z-10">
                       <div className="w-14 h-14 rounded-2xl bg-foreground/5 border border-foreground/10 flex items-center justify-center group-hover:bg-rose-gold group-hover:border-rose-gold transition-all duration-500">
                         <item.icon size={24} className="text-rose-gold group-hover:text-midnight transition-colors" />
                       </div>
-                      <div>
+                      <div className="space-y-1">
                         <p className="text-[10px] uppercase font-bold tracking-widest text-rose-gold/60 mb-1">{item.title}</p>
-                        {item.href ? (
-                          <a href={item.href} className="text-xl font-bold text-foreground block hover:text-rose-gold transition-colors">{item.val}</a>
-                        ) : (
-                          <p className="text-xl font-bold text-foreground">{item.val}</p>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          {item.links.map((link, idx) => (
+                            <a 
+                              key={idx}
+                              href={link.href} 
+                              className="text-xl font-bold text-foreground block hover:text-rose-gold transition-colors"
+                            >
+                              {link.label}
+                            </a>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </BorderGlow>
                 ))}
               </div>
 
               {/* WhatsApp CTA */}
               <div className="pt-8">
                 <a
-                  href="https://chat.whatsapp.com/"
+                  href="https://chat.whatsapp.com/F3GkUdjKLKX1lV0OmHmY8J?mode=gi_t"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group inline-flex items-center gap-4 px-10 py-5 bg-green-600/10 border border-green-600/20 text-green-500 font-bold rounded-full hover:bg-green-600 hover:text-foreground transition-all duration-500 shadow-[0_0_30px_rgba(22,163,74,0.1)]"
@@ -108,56 +202,70 @@ const Contact = () => {
               </h2>
               <form
                 className="space-y-8"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const form = e.target as HTMLFormElement;
-                  const data = new FormData(form);
-                  const subject = encodeURIComponent("Message from " + (data.get("name") || "Visitor"));
-                  const body = encodeURIComponent(data.get("message") as string || "");
-                  window.location.href = `mailto:info@rccgimpacthouse.org?subject=${subject}&body=${body}`;
-                }}
+                onSubmit={handleSubmit}
               >
-                <div className="space-y-4">
-                  <label className="text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/65 block ml-4">Full Name</label>
+                <div className="space-y-4 group/field">
+                  <label className="text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/65 block ml-4 group-focus-within/field:text-rose-gold transition-colors">Full Name</label>
                   <input
                     name="name"
                     type="text"
                     required
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-8 py-5 rounded-2xl bg-foreground/[0.03] border border-foreground/10 text-foreground focus:outline-none focus:border-rose-gold/50 focus:ring-4 focus:ring-rose-gold/5 transition-all text-sm font-medium placeholder:text-foreground/20"
                     placeholder="Discoverer Name"
                   />
                 </div>
-                <div className="space-y-4">
-                  <label className="text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/65 block ml-4">Email Address</label>
+                <div className="space-y-4 group/field">
+                  <label className="text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/65 block ml-4 group-focus-within/field:text-rose-gold transition-colors">Email Address</label>
                   <input
                     name="email"
                     type="email"
                     required
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
                     className="w-full px-8 py-5 rounded-2xl bg-foreground/[0.03] border border-foreground/10 text-foreground focus:outline-none focus:border-rose-gold/50 focus:ring-4 focus:ring-rose-gold/5 transition-all text-sm font-medium placeholder:text-foreground/20"
                     placeholder="you@vision.com"
                   />
                 </div>
-                <div className="space-y-4">
-                  <label className="text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/65 block ml-4">Message</label>
+                <div className="space-y-4 group/field">
+                  <label className="text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/65 block ml-4 group-focus-within/field:text-rose-gold transition-colors">Message</label>
                   <textarea
                     name="message"
                     rows={5}
                     required
+                    value={formData.message}
+                    onChange={(e) => setFormData({...formData, message: e.target.value})}
                     className="w-full px-8 py-5 rounded-2xl bg-foreground/[0.03] border border-foreground/10 text-foreground focus:outline-none focus:border-rose-gold/50 focus:ring-4 focus:ring-rose-gold/5 transition-all text-sm font-medium placeholder:text-foreground/20 resize-none"
                     placeholder="How can we help you discover purpose?"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full px-10 py-5 bg-rose-gold text-midnight font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-[0_10px_30px_rgba(226,176,145,0.2)]"
+                  disabled={isSubmitting}
+                  className={cn(
+                    "w-full px-10 py-5 bg-rose-gold text-midnight font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-[0_10px_30px_rgba(226,176,145,0.2)] flex items-center justify-center gap-3",
+                    isSubmitting && "opacity-70 cursor-not-allowed"
+                  )}
                 >
-                  Broadcast Message
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Broadcasting...
+                    </>
+                  ) : (
+                    <>
+                      <span>Broadcast Message</span>
+                      <Send size={18} />
+                    </>
+                  )}
                 </button>
               </form>
             </div>
           </ScrollReveal>
         </div>
       </section>
+
 
       {/* Social Media */}
       <section className="py-32 bg-foreground/[0.02] border-y border-foreground/5">
@@ -176,12 +284,33 @@ const Contact = () => {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="glassmorphic p-8 rounded-[2rem] flex flex-col items-center gap-6 group hover:translate-y-[-8px] transition-all duration-500 hover:border-rose-gold/40"
+                  className="block group h-full rounded-[2rem]"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-foreground/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                    <link.icon size={32} className="text-rose-gold/80" />
-                  </div>
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-foreground/65 group-hover:text-rose-gold transition-colors">{link.label}</span>
+                  <BorderGlow
+                    edgeSensitivity={20}
+                    glowColor={link.glowColor}
+                    backgroundColor="hsl(var(--midnight) / 0.4)"
+                    borderRadius={32} // rounded-[2rem] is 32px
+                    glowRadius={40}
+                    glowIntensity={1.0}
+                    colors={link.colors}
+                    fillOpacity={0.06}
+                    className="h-full border border-white/5 group-hover:border-transparent transition-all duration-300"
+                  >
+                    <div className="p-8 flex flex-col items-center gap-6 relative z-10 text-center">
+                      <div className="w-16 h-16 rounded-2xl bg-foreground/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                        {(() => {
+                          const Icon = link.icon as React.ElementType;
+                          return typeof Icon === 'function' && Icon.length > 0 ? (
+                            <Icon className="w-8 h-8 text-rose-gold/80" />
+                          ) : (
+                            <Icon size={32} className="text-rose-gold/80" />
+                          );
+                        })()}
+                      </div>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-foreground/65 group-hover:text-rose-gold transition-colors">{link.label}</span>
+                    </div>
+                  </BorderGlow>
                 </a>
               </ScrollReveal>
             ))}
