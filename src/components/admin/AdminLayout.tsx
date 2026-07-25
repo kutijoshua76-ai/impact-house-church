@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
-import { Bell, Search, LogOut, Loader2, ArrowUpRight } from 'lucide-react';
+import { Bell, Search, LogOut, Loader2, ArrowUpRight, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ThemeSwitcher } from '../ThemeSwitcher';
 import { supabase } from '@/lib/supabase';
@@ -14,6 +14,7 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const { profile, signOut } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,23 +100,33 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-background overflow-hidden text-foreground">
-      <Sidebar hasNotifications={unreadCount > 0} />
-      <main className="flex-1 ml-64 p-8 relative overflow-y-auto max-h-screen">
+      <Sidebar 
+        hasNotifications={unreadCount > 0} 
+        isOpen={isSidebarOpen} 
+        setIsOpen={setIsSidebarOpen} 
+      />
+      <main className="flex-1 ml-0 md:ml-64 p-4 md:p-8 relative overflow-y-auto max-h-screen">
         {/* Top bar */}
-        <header className="flex items-center justify-between mb-12">
-          <div>
-            <h2 className="text-foreground/40 text-xs font-bold uppercase tracking-[0.3em] mb-1">Impact House Admin</h2>
+        <header className="flex items-center justify-between mb-8 md:mb-12">
+          <div className="flex items-center gap-3">
+            <button 
+              className="md:hidden p-2 -ml-2 rounded-xl hover:bg-foreground/5 text-foreground/70"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <h2 className="text-foreground/40 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] mb-1">Impact House Admin</h2>
           </div>
           
-          <div className="flex items-center gap-6">
-            <div className="relative group">
+          <div className="flex items-center gap-2 md:gap-6">
+            <div className="relative group hidden sm:block">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-primary transition-colors" size={18} />
               <input 
                 type="text" 
                 placeholder="Search everything..." 
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="bg-foreground/5 border border-foreground/10 rounded-2xl pl-12 pr-6 py-3 text-sm focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all w-64"
+                className="bg-foreground/5 border border-foreground/10 rounded-2xl pl-12 pr-6 py-3 text-sm focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all w-48 lg:w-64"
               />
               
               {/* Search Results Dropdown */}
@@ -139,7 +150,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               )}
             </div>
 
-            <ThemeSwitcher />
+            <div className="hidden sm:block">
+              <ThemeSwitcher />
+            </div>
             
             <div className="relative">
               <button 
@@ -190,17 +203,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               )}
             </div>
             
-            <div className="flex items-center gap-3 pl-6 border-l border-foreground/10">
-              <div className="text-right">
+            <div className="flex items-center gap-2 md:gap-3 pl-3 md:pl-6 border-l border-foreground/10">
+              <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold truncate max-w-[150px]">{profile?.full_name || 'Super Admin'}</p>
                 <p className="text-[10px] text-foreground/40 uppercase tracking-widest font-bold capitalize">{profile?.role || 'Admin'}</p>
               </div>
               <button 
                 onClick={handleSignOut}
                 title="Sign Out"
-                className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-yellow-500/20 border border-foreground/10 flex items-center justify-center hover:scale-105 transition-transform"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-yellow-500/20 border border-foreground/10 flex items-center justify-center hover:scale-105 transition-transform shrink-0"
               >
-                <LogOut size={20} className="text-primary" />
+                <LogOut size={18} className="text-primary md:w-5 md:h-5" />
               </button>
             </div>
           </div>

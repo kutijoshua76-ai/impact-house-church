@@ -114,8 +114,8 @@ export default function AdminFirstTimers() {
           <p className="text-foreground/40 text-sm">Manage and follow up with new family members</p>
         </div>
         
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="relative flex-1 md:w-80 group">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+          <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-primary transition-colors" size={18} />
             <input 
               type="text" 
@@ -125,16 +125,16 @@ export default function AdminFirstTimers() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 sm:shrink-0">
             <button 
               onClick={handleExportPDF}
               title="Download PDF" 
-              className="glassmorphic rounded-2xl px-4 py-3 flex items-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10"
+              className="glassmorphic rounded-2xl px-4 py-3 flex-1 sm:flex-none flex items-center justify-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10"
             >
               <Download size={18} />
               <span className="text-sm font-medium">Export</span>
             </button>
-            <button onClick={fetchFirstTimers} title="Refresh" className="glassmorphic rounded-2xl px-4 py-3 flex items-center gap-2 hover:bg-foreground/10 transition-colors">
+            <button onClick={fetchFirstTimers} title="Refresh" className="glassmorphic rounded-2xl px-4 py-3 flex-1 sm:flex-none flex items-center justify-center gap-2 hover:bg-foreground/10 transition-colors">
               <span className="text-sm font-medium text-foreground">Refresh</span>
             </button>
           </div>
@@ -150,7 +150,7 @@ export default function AdminFirstTimers() {
               <p className="text-xs font-bold uppercase tracking-widest text-foreground/20">Loading Kingdom Records...</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[800px] text-left border-collapse">
               <thead>
                 <tr className="border-b border-foreground/5 bg-foreground/[0.02]">
                   <th className="px-8 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Member Details</th>

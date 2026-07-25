@@ -151,7 +151,7 @@ export default function AdminWorkforce() {
           <p className="text-foreground/40 text-sm mt-1">Manage department applications and service registrations</p>
         </div>
 
-        <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-4 w-full md:w-auto">
           {/* Search */}
           <div className="relative flex-1 md:w-80 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-primary transition-colors" size={18} />
@@ -184,7 +184,7 @@ export default function AdminWorkforce() {
             <button
               onClick={handleExportPDF}
               title="Export PDF"
-              className="glassmorphic rounded-2xl px-4 py-3 flex items-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10"
+              className="glassmorphic rounded-2xl px-4 py-3 flex-1 xl:flex-none flex items-center justify-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10"
             >
               <Download size={18} />
               <span className="text-sm font-medium">Export</span>
@@ -192,7 +192,7 @@ export default function AdminWorkforce() {
             <button
               onClick={fetchApplications}
               title="Refresh"
-              className="glassmorphic rounded-2xl px-4 py-3 flex items-center gap-2 hover:bg-foreground/10 transition-colors"
+              className="glassmorphic rounded-2xl px-4 py-3 flex-1 xl:flex-none flex items-center justify-center gap-2 hover:bg-foreground/10 transition-colors"
             >
               <span className="text-sm font-medium text-foreground">Refresh</span>
             </button>
@@ -223,7 +223,7 @@ export default function AdminWorkforce() {
               <p className="text-xs font-bold uppercase tracking-widest text-foreground/20">Loading Applications...</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[900px] text-left border-collapse">
               <thead>
                 <tr className="border-b border-foreground/5 bg-foreground/[0.02]">
                   <th className="px-8 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Applicant</th>

@@ -93,23 +93,23 @@ export default function AdminContacts() {
           <p className="text-foreground/40 text-sm">Review inquiries from the public website</p>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
           <button 
             onClick={handleExportPDF}
             title="Download PDF" 
-            className="glassmorphic rounded-2xl px-4 py-3 flex items-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10"
+            className="glassmorphic rounded-2xl px-4 py-3 flex items-center justify-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10 shrink-0"
           >
             <Download size={18} />
             <span className="text-sm font-medium">Export</span>
           </button>
-          <div className="relative group">
+          <div className="relative group w-full sm:w-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-primary transition-colors" size={18} />
             <input 
               type="text" 
               placeholder="Search messages..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-foreground/5 border border-foreground/10 rounded-2xl pl-12 pr-6 py-3 text-sm focus:outline-none focus:border-primary/50 transition-all w-64"
+              className="bg-foreground/5 border border-foreground/10 rounded-2xl pl-12 pr-6 py-3 text-sm focus:outline-none focus:border-primary/50 transition-all w-full sm:w-64"
             />
           </div>
         </div>

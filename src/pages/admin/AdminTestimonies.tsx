@@ -92,22 +92,22 @@ export default function AdminTestimonies() {
           <p className="text-foreground/40 text-sm">Review and approve testimonies for the public wall</p>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-4 w-full md:w-auto">
           <button 
             onClick={handleExportPDF}
             title="Download PDF" 
-            className="glassmorphic rounded-2xl px-4 py-3 flex items-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10"
+            className="glassmorphic rounded-2xl px-4 py-3 flex items-center justify-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10 shrink-0"
           >
             <Download size={18} />
             <span className="text-sm font-medium">Export</span>
           </button>
-          <div className="flex bg-foreground/5 p-1 rounded-2xl border border-foreground/10">
+          <div className="flex bg-foreground/5 p-1 rounded-2xl border border-foreground/10 overflow-x-auto">
             {['all', 'pending', 'approved', 'rejected'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
                 className={cn(
-                  "px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+                  "px-4 sm:px-6 py-2 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap",
                   filter === tab ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40 hover:text-foreground"
                 )}
               >

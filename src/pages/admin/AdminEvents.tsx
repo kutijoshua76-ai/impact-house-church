@@ -325,7 +325,7 @@ export default function AdminEvents() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl font-bold">Upcoming <span className="text-rose-gradient">Events</span></h1>
           <p className="text-sm text-foreground/40 mt-1">Manage and schedule church gatherings</p>

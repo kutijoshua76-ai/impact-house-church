@@ -17,11 +17,15 @@ import { cn } from '@/lib/utils';
 import rccgLogo from '@/assets/rccg-logo.png';
 import { useAuth } from '../auth/AuthProvider';
 
+import { X } from 'lucide-react'; // Added X for close button
+
 interface SidebarProps {
   hasNotifications?: boolean;
+  isOpen?: boolean;
+  setIsOpen?: (isOpen: boolean) => void;
 }
 
-export default function Sidebar({ hasNotifications }: SidebarProps) {
+export default function Sidebar({ hasNotifications, isOpen, setIsOpen }: SidebarProps) {
   const { isSuperAdmin, signOut } = useAuth();
 
   const navItems = [
@@ -39,16 +43,35 @@ export default function Sidebar({ hasNotifications }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-64 h-screen glassmorphic border-r border-foreground/5 flex flex-col p-6 fixed left-0 top-0 z-50">
-      <div className="flex items-center gap-3 mb-12 px-2">
-        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shadow-lg overflow-hidden border border-white/10">
-          <img src={rccgLogo} alt="RCCG Logo" className="w-8 h-8 object-contain" />
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsOpen?.(false)}
+        />
+      )}
+      <aside className={cn(
+        "w-64 h-screen glassmorphic border-r border-foreground/5 flex flex-col p-6 fixed left-0 top-0 z-50 transition-transform duration-300",
+        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      )}>
+        <div className="flex items-center justify-between mb-12 px-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shadow-lg overflow-hidden border border-white/10">
+              <img src={rccgLogo} alt="RCCG Logo" className="w-8 h-8 object-contain" />
+            </div>
+            <div>
+              <h1 className="font-serif font-bold text-base leading-tight">RCCG Impact House</h1>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-foreground/40 font-bold">Admin Portal</p>
+            </div>
+          </div>
+          <button 
+            className="md:hidden p-2 -mr-2 rounded-xl hover:bg-foreground/5 text-foreground/70"
+            onClick={() => setIsOpen?.(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
-        <div>
-          <h1 className="font-serif font-bold text-base leading-tight">RCCG Impact House</h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-foreground/40 font-bold">Admin Portal</p>
-        </div>
-      </div>
 
       <nav className="flex-1 space-y-2">
         {navItems.map((item) => (
@@ -94,5 +117,6 @@ export default function Sidebar({ hasNotifications }: SidebarProps) {
         </button>
       </div>
     </aside>
+    </>
   );
 }

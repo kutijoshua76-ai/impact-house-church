@@ -112,22 +112,22 @@ export default function AdminDonations() {
           <p className="text-foreground/40 text-sm">Monitor kingdom investments and giving reports</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-4 w-full md:w-auto">
           <button 
             onClick={handleExportPDF}
             title="Download PDF" 
-            className="glassmorphic rounded-2xl px-4 py-3 flex items-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10"
+            className="glassmorphic rounded-2xl px-4 py-3 flex items-center justify-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-primary/10"
           >
             <Download size={18} />
             <span className="text-sm font-medium">Export</span>
           </button>
-          <div className="flex bg-foreground/5 p-1 rounded-2xl border border-foreground/10">
+          <div className="flex bg-foreground/5 p-1 rounded-2xl border border-foreground/10 overflow-x-auto">
             {['all', 'tithe', 'project'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
                 className={cn(
-                  "px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+                  "px-4 sm:px-6 py-2 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap",
                   filter === tab ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40 hover:text-foreground"
                 )}
               >
@@ -136,14 +136,14 @@ export default function AdminDonations() {
             ))}
           </div>
 
-          <div className="relative group">
+          <div className="relative group w-full xl:w-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-primary transition-colors" size={18} />
             <input 
               type="text" 
               placeholder="Search donor..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-foreground/5 border border-foreground/10 rounded-2xl pl-12 pr-6 py-3 text-sm focus:outline-none focus:border-primary/50 transition-all w-48"
+              className="bg-foreground/5 border border-foreground/10 rounded-2xl pl-12 pr-6 py-3 text-sm focus:outline-none focus:border-primary/50 transition-all w-full xl:w-48"
             />
           </div>
         </div>
@@ -200,8 +200,9 @@ export default function AdminDonations() {
         </div>
       ) : (
         <div className="glassmorphic overflow-hidden rounded-[2rem] border border-foreground/5">
-          <table className="w-full text-left border-collapse">
-            <thead>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left border-collapse">
+              <thead>
               <tr className="bg-foreground/[0.02] border-b border-foreground/5">
                 <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-foreground/40">Donor Name</th>
                 <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-foreground/40">Amount</th>
@@ -271,7 +272,8 @@ export default function AdminDonations() {
                 </tr>
               )}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       )}
     </div>

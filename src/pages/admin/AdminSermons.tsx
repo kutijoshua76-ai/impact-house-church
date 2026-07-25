@@ -19,7 +19,7 @@ export default function AdminSermons() {
   return (
     <div className="relative min-h-[80vh]">
       {/* Page Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-serif font-bold mb-2">Sermons Management</h1>
           <p className="text-foreground/60">Upload and manage church sermons, series, and teachings.</p>

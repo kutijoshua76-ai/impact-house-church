@@ -125,7 +125,7 @@ export default function AdminUsers() {
   return (
     <div className="space-y-10 animate-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <p className="text-foreground/40 text-[10px] font-bold uppercase tracking-[0.3em] mb-1">Super Admin</p>
           <h2 className="font-serif text-3xl font-bold">
@@ -155,8 +155,9 @@ export default function AdminUsers() {
             <p className="text-foreground/40 font-medium">No users found.</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px]">
+              <thead>
               <tr className="border-b border-foreground/5">
                 <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">User</th>
                 <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Role</th>
@@ -242,7 +243,8 @@ export default function AdminUsers() {
                 );
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
         )}
       </div>
 
