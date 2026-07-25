@@ -9,6 +9,7 @@ import rccgLogo from "@/assets/rccg-logo.png";
 import pastorDami from "@/assets/church-photos/1001871934.jpg";
 import pastorDoyin from "@/assets/church-photos/1001871990.jpg";
 import pastorKehinde from "@/assets/church-photos/1001871952.jpg";
+import { SEO } from "@/components/SEO";
 
 const leaders = [
   {
@@ -57,6 +58,11 @@ const getInitial = (name: string) => {
 const Leaders = () => {
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      <SEO 
+        title="Our Leaders" 
+        canonicalUrl="/leaders"
+        description="Meet the spiritual shepherds of RCCG Impact House. Guiding, nurturing, and empowering the body of Christ."
+      />
       <BackgroundWatermark />
 
       <Navbar />

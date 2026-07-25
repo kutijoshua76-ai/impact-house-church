@@ -3,6 +3,7 @@ import { NavLink, Link } from 'react-router-dom';
 import { Search, Home, Library, Radio, ArrowLeft, PlayCircle, MoreHorizontal } from 'lucide-react';
 import rccgLogo from '@/assets/rccg-logo.png';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/SEO';
 
 // Dummy data for scaffolding the design
 const CATEGORIES = [
@@ -85,6 +86,11 @@ export default function Sermons() {
 
   return (
     <div className="flex h-screen bg-[#121212] text-white overflow-hidden relative font-sans">
+      <SEO 
+        title="Sermons & Messages" 
+        canonicalUrl="/sermons"
+        description="Listen to sermons and messages from RCCG Impact House. Grow your faith with teachings from our pastors."
+      />
       
       {/* Sidebar */}
       <aside className="w-64 border-r border-white/5 bg-[#181818] flex flex-col justify-between shrink-0 hidden md:flex">

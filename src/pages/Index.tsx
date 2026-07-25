@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { Users, BookOpen, Heart, Clock, Youtube, Instagram, Facebook, ChevronDown, Mail, Share2, MessageSquare, Briefcase } from "lucide-react";
 import BorderGlow from "@/components/ui/border-glow";
 import TrueFocus from "@/components/ui/TrueFocus";
+import { SEO } from "@/components/SEO";
 
 const Index = () => {
   const [showQuickLinks, setShowQuickLinks] = useState(false);
@@ -42,8 +43,27 @@ const Index = () => {
     };
   }, []);
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Church",
+    "name": "RCCG Impact House",
+    "url": "https://rccgimpacthouse.org",
+    "logo": "https://rccgimpacthouse.org/apple-touch-icon.png",
+    "description": "A vibrant church community raising impactful youths, rooted in faith, love, and the word of God.",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Lagos",
+      "addressCountry": "NG"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      <SEO 
+        title="RCCG Impact House | A Place of Worship & Transformation" 
+        canonicalUrl="/"
+        structuredData={structuredData}
+      />
       <BackgroundWatermark />
 
       <Navbar />

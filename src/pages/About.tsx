@@ -3,10 +3,16 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import { churchPhotos } from "@/assets/church-photos";
+import { SEO } from "@/components/SEO";
 
 const About = () => {
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      <SEO 
+        title="About Us" 
+        canonicalUrl="/about"
+        description="Learn more about RCCG Impact House. Founded on faith, growing in grace, and making an impact in the lives of many."
+      />
       <BackgroundWatermark />
       
       <Navbar />

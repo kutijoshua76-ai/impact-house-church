@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import { Calendar, MapPin, Clock, ArrowRight, Loader2, X, Play, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { format } from 'date-fns';
+import { SEO } from '@/components/SEO';
 
 interface Event {
   id: string;
@@ -174,6 +175,11 @@ export default function Events() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO 
+        title="Upcoming Events" 
+        canonicalUrl="/events"
+        description="Join us for worship, fellowship, and ministry. Be part of what God is doing at Impact House."
+      />
       <Navbar />
 
       {/* Hero Section */}

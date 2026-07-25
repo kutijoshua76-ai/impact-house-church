@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
+import { SEO } from "@/components/SEO";
 
 
 const campuses = [
@@ -165,6 +166,11 @@ const FirstTimer = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      <SEO 
+        title="I'm New - First Timers" 
+        canonicalUrl="/first-timers"
+        description="Welcome to RCCG Impact House! Plan a visit and get connected to our vibrant community."
+      />
       <BackgroundWatermark />
 
       <Navbar />

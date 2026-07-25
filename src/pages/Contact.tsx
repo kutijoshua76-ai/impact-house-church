@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import BorderGlow from "@/components/ui/border-glow";
+import { SEO } from "@/components/SEO";
 
 const socialLinks = [
   { 
@@ -83,6 +84,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      <SEO 
+        title="Contact Us" 
+        canonicalUrl="/contact"
+        description="Get in touch with RCCG Impact House. We would love to hear from you."
+      />
       <BackgroundWatermark />
 
       <Navbar />

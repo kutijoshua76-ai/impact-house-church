@@ -1,8 +1,10 @@
 User-agent: Googlebot
 Allow: /
 
-User-agent: Bingbot
+User-agent: Yandex
 Allow: /
+
+Sitemap: https://rccgimpacthouse.org/sitemap.xml
 
 User-agent: Twitterbot
 Allow: /
