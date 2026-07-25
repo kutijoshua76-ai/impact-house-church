@@ -60,7 +60,7 @@ const Navbar = () => {
                     <ChevronDown size={14} className="group-hover/nav:rotate-180 transition-transform duration-300" />
                     
                     {/* Dropdown */}
-                    <div className="absolute top-full left-0 mt-4 w-56 glassmorphic rounded-2xl p-2 opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all duration-300 translate-y-2 group-hover/nav:translate-y-0 shadow-2xl overflow-hidden">
+                    <div className="absolute top-full left-0 mt-4 w-56 bg-[#0a0a0a] border border-white/10 rounded-2xl p-2 opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all duration-300 translate-y-2 group-hover/nav:translate-y-0 shadow-2xl overflow-hidden">
                       {link.children.map((child) => (
                         <Link
                           key={child.to}
