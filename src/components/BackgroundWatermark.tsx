@@ -1,12 +1,12 @@
-import rccgLogo from "@/assets/rccg-logo.png";
+import rccgLogoBg from "@/assets/rccg-logo-bg.jpg";
 
 const BackgroundWatermark = () => {
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
       <img
-        src={rccgLogo}
+        src={rccgLogoBg}
         alt="Watermark"
-        className="w-full h-full opacity-[0.04] dark:opacity-[0.06] grayscale object-cover mix-blend-overlay"
+        className="w-full h-full opacity-[0.05] dark:opacity-[0.07] grayscale object-cover mix-blend-overlay"
       />
     </div>
   );
