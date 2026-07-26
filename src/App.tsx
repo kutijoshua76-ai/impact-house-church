@@ -36,6 +36,7 @@ import Events from "./pages/Events";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import Login from "./pages/Login.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/join-workforce" element={<JoinWorkforce />} />
             <Route path="/sermons" element={<Sermons />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected Admin Routes (admin + super_admin) */}
             <Route path="/admin" element={
