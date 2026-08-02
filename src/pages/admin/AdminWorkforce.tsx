@@ -10,6 +10,12 @@ import {
   Briefcase,
   Filter,
   Users,
+  Eye,
+  User,
+  Clock,
+  MessageSquare,
+  Star,
+  X,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { format } from 'date-fns';
@@ -26,6 +32,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Department list for filter dropdown
 const DEPARTMENTS = [
@@ -63,11 +75,159 @@ const deptColour: Record<string, string> = {
   "Medical Unit": "bg-red-400/10 text-red-300 border-red-400/20",
 };
 
+// Detail field helper
+function DetailField({ label, value, full = false }: { label: string; value?: string | null; full?: boolean }) {
+  return (
+    <div className={full ? "col-span-2" : ""}>
+      <p className="text-foreground/40 text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5">{label}</p>
+      <p className="text-foreground text-sm font-medium leading-relaxed">
+        {value || <span className="text-foreground/25 italic">Not provided</span>}
+      </p>
+    </div>
+  );
+}
+
+// Applicant Detail Modal
+function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClose: () => void }) {
+  if (!app) return null;
+
+  const initials = app.full_name
+    ?.split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || '?';
+
+  const badgeClass = deptColour[app.department] || 'bg-foreground/5 text-foreground/40 border-foreground/10';
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="glassmorphic border-white/10 max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+        {/* Header banner */}
+        <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 pb-6 border-b border-white/10">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-xl transition-colors text-foreground/40 hover:text-foreground"
+          >
+            <X size={18} />
+          </button>
+
+          <div className="flex items-center gap-5">
+            {/* Avatar */}
+            <div className="w-16 h-16 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-bold text-xl shrink-0 border border-primary/20">
+              {initials}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <DialogHeader>
+                <DialogTitle className="font-serif text-2xl font-bold mb-1 text-left">
+                  {app.full_name}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-widest border ${badgeClass}`}>
+                  <Briefcase size={10} />
+                  {app.department}
+                </span>
+                {app.age_range && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-foreground/5 text-foreground/40 border border-foreground/10">
+                    Age: {app.age_range}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick contact row */}
+          <div className="flex flex-wrap gap-4 mt-5">
+            {app.email && (
+              <a href={`mailto:${app.email}`} className="flex items-center gap-2 text-xs text-foreground/50 hover:text-primary transition-colors">
+                <Mail size={13} /> {app.email}
+              </a>
+            )}
+            {app.phone && (
+              <a href={`tel:${app.phone}`} className="flex items-center gap-2 text-xs text-foreground/50 hover:text-primary transition-colors">
+                <Phone size={13} /> {app.phone}
+              </a>
+            )}
+            {app.created_at && (
+              <span className="flex items-center gap-2 text-xs text-foreground/40">
+                <Calendar size={13} /> Applied {format(new Date(app.created_at), 'MMM dd, yyyy')}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-8 space-y-8">
+
+          {/* Personal Details */}
+          <div>
+            <div className="flex items-center gap-2 mb-5">
+              <User size={15} className="text-primary" />
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Personal Details</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-5 bg-foreground/[0.03] rounded-2xl p-5 border border-foreground/5">
+              <DetailField label="Full Name" value={app.full_name} />
+              <DetailField label="Gender" value={app.gender ? app.gender.charAt(0).toUpperCase() + app.gender.slice(1).replace(/-/g, ' ') : undefined} />
+              <DetailField label="Email Address" value={app.email} />
+              <DetailField label="Phone Number" value={app.phone} />
+              <DetailField label="Age Range" value={app.age_range} />
+            </div>
+          </div>
+
+          {/* Service Preferences */}
+          <div>
+            <div className="flex items-center gap-2 mb-5">
+              <Clock size={15} className="text-primary" />
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Service Preferences</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-5 bg-foreground/[0.03] rounded-2xl p-5 border border-foreground/5">
+              <DetailField label="Department Applied" value={app.department} />
+              <DetailField label="Availability" value={app.availability} />
+            </div>
+          </div>
+
+          {/* Motivation & Experience */}
+          <div>
+            <div className="flex items-center gap-2 mb-5">
+              <MessageSquare size={15} className="text-primary" />
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Motivation & Experience</h3>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-foreground/40 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">
+                  Why they want to join
+                </p>
+                <p className="bg-foreground/[0.03] border border-foreground/5 rounded-2xl p-5 text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                  {app.reason || <span className="italic text-foreground/25">Not provided</span>}
+                </p>
+              </div>
+              {app.experience && (
+                <div>
+                  <p className="text-foreground/40 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">
+                    Prior Experience
+                  </p>
+                  <p className="bg-foreground/[0.03] border border-foreground/5 rounded-2xl p-5 text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                    {app.experience}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AdminWorkforce() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('All Departments');
+  const [viewingApp, setViewingApp] = useState<any | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -110,6 +270,7 @@ export default function AdminWorkforce() {
 
       if (error) throw error;
       setApplications((prev) => prev.filter((a) => a.id !== id));
+      if (viewingApp?.id === id) setViewingApp(null);
       toast({ title: "Record Deleted", description: "The application has been removed." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Delete Failed", description: error.message || "Failed to delete." });
@@ -141,6 +302,13 @@ export default function AdminWorkforce() {
 
   return (
     <div className="space-y-8 animate-fade-in">
+
+      {/* Applicant Detail Modal */}
+      <ApplicantModal
+        app={viewingApp}
+        open={!!viewingApp}
+        onClose={() => setViewingApp(null)}
+      />
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -236,7 +404,11 @@ export default function AdminWorkforce() {
               </thead>
               <tbody className="divide-y divide-foreground/5">
                 {filtered.length > 0 ? filtered.map((app) => (
-                  <tr key={app.id} className="hover:bg-foreground/[0.03] transition-colors group text-foreground">
+                  <tr
+                    key={app.id}
+                    className="hover:bg-foreground/[0.03] transition-colors group text-foreground cursor-pointer"
+                    onClick={() => setViewingApp(app)}
+                  >
                     {/* Applicant */}
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
@@ -289,8 +461,17 @@ export default function AdminWorkforce() {
                     </td>
 
                     {/* Actions */}
-                    <td className="px-8 py-6 text-right">
+                    <td className="px-8 py-6 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
+                        {/* View Details */}
+                        <button
+                          title="View applicant details"
+                          onClick={() => setViewingApp(app)}
+                          className="p-2 hover:bg-primary/10 rounded-lg text-primary/40 hover:text-primary transition-colors"
+                        >
+                          <Eye size={18} />
+                        </button>
+
                         {app.phone && (
                           <a
                             href={`tel:${app.phone}`}
