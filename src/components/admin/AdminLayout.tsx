@@ -23,7 +23,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Real-time listener for first_timers
+    // Real-time listeners for all notifications
     const subscription = supabase
       .channel('admin-notifications')
       .on(
@@ -49,6 +49,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           toast({
             title: "New Testimony",
             description: "A new testimony has been submitted for review.",
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'workforce_applications' },
+        (payload) => {
+          setUnreadCount(prev => prev + 1);
+          const newNotif = { type: 'Workforce', name: payload.new.full_name || 'New Application', time: new Date() };
+          setNotifications(prev => [newNotif, ...prev].slice(0, 5));
+          toast({
+            title: "New Workforce Application",
+            description: `${payload.new.full_name || 'Someone'} has applied to join a unit.`,
           });
         }
       )
@@ -162,7 +175,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <Bell size={20} className="text-foreground/70" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full animate-pulse ring-4 ring-primary/20" />
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full animate-pulse ring-4 ring-red-500/20" />
                 )}
               </button>
 
