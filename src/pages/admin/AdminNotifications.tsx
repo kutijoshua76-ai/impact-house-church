@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 
 type ActivityItem = {
   id: string;
-  type: 'First Timer' | 'Testimony';
+  type: 'First Timer' | 'Testimony' | 'Workforce';
   name: string;
   summary: string;
   created_at: string;
@@ -60,6 +60,21 @@ export default function AdminNotifications() {
           setActivities(prev => [newActivity, ...prev]);
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'workforce_applications' },
+        (payload) => {
+          const newActivity: ActivityItem = {
+            id: `wf-${payload.new.id}`,
+            type: 'Workforce',
+            name: payload.new.full_name || 'New Application',
+            summary: `Applied to join a unit`,
+            created_at: payload.new.created_at,
+            link: '/admin/workforce'
+          };
+          setActivities(prev => [newActivity, ...prev]);
+        }
+      )
       .subscribe();
 
     return () => {
@@ -71,7 +86,7 @@ export default function AdminNotifications() {
     try {
       setLoading(true);
       
-      const [firstTimersRes, testimoniesRes] = await Promise.all([
+      const [firstTimersRes, testimoniesRes, workforceRes] = await Promise.all([
         supabase
           .from('first_timers')
           .select('id, full_name, campus, created_at')
@@ -79,6 +94,11 @@ export default function AdminNotifications() {
           .limit(30),
         supabase
           .from('testimonies')
+          .select('id, full_name, created_at')
+          .order('created_at', { ascending: false })
+          .limit(30),
+        supabase
+          .from('workforce_applications')
           .select('id, full_name, created_at')
           .order('created_at', { ascending: false })
           .limit(30)
@@ -102,7 +122,16 @@ export default function AdminNotifications() {
         link: '/admin/testimonies'
       }));
 
-      const combined = [...firstTimers, ...testimonies].sort((a, b) => 
+      const workforce: ActivityItem[] = (workforceRes.data || []).map(item => ({
+        id: `wf-${item.id}`,
+        type: 'Workforce',
+        name: item.full_name || 'New Application',
+        summary: 'Applied to join a unit',
+        created_at: item.created_at,
+        link: '/admin/workforce'
+      }));
+
+      const combined = [...firstTimers, ...testimonies, ...workforce].sort((a, b) => 
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
@@ -133,12 +162,16 @@ export default function AdminNotifications() {
               <div key={activity.id} className="relative pl-8 md:pl-12 group">
                 {/* Timeline dot */}
                 <div className={`absolute -left-[18px] top-1 w-9 h-9 rounded-full flex items-center justify-center border-4 border-background shadow-lg transition-transform group-hover:scale-110
-                  ${activity.type === 'First Timer' ? 'bg-primary/20 text-primary border-background' : 'bg-yellow-500/20 text-yellow-500 border-background'}`}
+                  ${activity.type === 'First Timer' ? 'bg-primary/20 text-primary border-background' : 
+                    activity.type === 'Testimony' ? 'bg-yellow-500/20 text-yellow-500 border-background' : 
+                    'bg-rose-500/20 text-rose-500 border-background'}`}
                 >
                   {activity.type === 'First Timer' ? (
                     <UserPlus size={16} />
-                  ) : (
+                  ) : activity.type === 'Testimony' ? (
                     <MessageSquareHeart size={16} />
+                  ) : (
+                    <Bell size={16} />
                   )}
                 </div>
 
@@ -148,7 +181,9 @@ export default function AdminNotifications() {
                     <div>
                       <div className="flex items-center gap-3 mb-2">
                         <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full
-                          ${activity.type === 'First Timer' ? 'bg-primary/10 text-primary' : 'bg-yellow-500/10 text-yellow-500'}`}
+                          ${activity.type === 'First Timer' ? 'bg-primary/10 text-primary' : 
+                            activity.type === 'Testimony' ? 'bg-yellow-500/10 text-yellow-500' :
+                            'bg-rose-500/10 text-rose-500'}`}
                         >
                           {activity.type}
                         </span>

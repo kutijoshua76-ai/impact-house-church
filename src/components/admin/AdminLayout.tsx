@@ -13,7 +13,10 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const { profile, signOut } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(() => {
+    const saved = localStorage.getItem('adminUnreadCount');
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -21,6 +24,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    localStorage.setItem('adminUnreadCount', unreadCount.toString());
+  }, [unreadCount]);
 
   useEffect(() => {
     // Real-time listeners for all notifications
@@ -173,10 +180,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 title="Notifications" 
                 className="relative w-12 h-12 glassmorphic rounded-2xl flex items-center justify-center hover:bg-foreground/10 transition-colors"
               >
-                <Bell size={20} className="text-foreground/70" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full animate-pulse ring-4 ring-red-500/20" />
-                )}
+                <div className="relative flex items-center justify-center">
+                  <Bell size={20} className="text-foreground/70" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse ring-2 ring-red-500/20" />
+                  )}
+                </div>
               </button>
 
               {/* Notifications Dropdown */}
