@@ -547,11 +547,17 @@ const JoinWorkforce = () => {
                       <div className="flex items-center gap-3">
                         <Briefcase className="text-rose-gold" size={20} />
                         <label htmlFor="experience" className="font-serif text-xl font-bold uppercase tracking-widest text-foreground/90">
-                          Prior Experience <span className="text-foreground/30 font-normal normal-case text-sm">(optional)</span>
+                          Prior Experience{" "}
+                          {selectedDept.name === "Media" ? (
+                            <span className="text-rose-gold/80 font-normal normal-case text-sm">* (required for Media)</span>
+                          ) : (
+                            <span className="text-foreground/30 font-normal normal-case text-sm">(optional)</span>
+                          )}
                         </label>
                       </div>
                       <textarea
                         id="experience" rows={3}
+                        required={selectedDept.name === "Media"}
                         placeholder="Any relevant skills, training, or past experience in this area..."
                         className="w-full bg-white/5 border border-white/10 rounded-3xl px-8 py-6 focus:outline-none focus:border-rose-gold/50 transition-all resize-none font-medium outline-none hover:bg-white/10"
                         value={formData.experience}
