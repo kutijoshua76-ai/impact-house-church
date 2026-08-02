@@ -234,30 +234,29 @@ export default function AdminOverview() {
             </button>
           </div>
 
-          <div className="relative aspect-[21/9] rounded-[2.5rem] overflow-hidden group shadow-2xl">
+          <div className="relative aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden group shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10" />
             <img 
               src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073&auto=format&fit=crop" 
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] group-hover:scale-110 opacity-80" 
               alt="Worship"
             />
-            <div className="relative z-20 h-full p-10 flex flex-col justify-center max-w-lg">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500 text-[10px] font-bold uppercase tracking-widest text-white mb-6 animate-pulse">
+            <div className="relative z-20 h-full p-5 sm:p-8 md:p-10 flex flex-col justify-end sm:justify-center max-w-lg">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500 text-[10px] font-bold uppercase tracking-widest text-white mb-3 sm:mb-6 animate-pulse w-fit">
                 <Video size={12} />
                 Live Now
               </div>
-              <h3 className="font-serif text-4xl font-bold text-white mb-4 leading-tight">Sunday Morning Service</h3>
-              <p className="text-white/70 text-sm mb-8 leading-relaxed">Join us live in worship and the teaching of God's word. Experience the power of the Holy Spirit.</p>
+              <h3 className="font-serif text-xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-4 leading-tight">Sunday Morning Service</h3>
+              <p className="text-white/70 text-xs sm:text-sm mb-4 sm:mb-8 leading-relaxed hidden sm:block">Join us live in worship and the teaching of God's word. Experience the power of the Holy Spirit.</p>
               <button 
                 onClick={() => window.open('/#watch-live', '_blank')}
-                className="w-fit px-8 py-3.5 bg-white text-black font-bold rounded-2xl text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl hover:bg-white/90"
+                className="w-fit px-5 sm:px-8 py-2.5 sm:py-3.5 bg-white text-black font-bold rounded-2xl text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl hover:bg-white/90"
               >
                 Watch Live
               </button>
             </div>
-            
-            {/* Viewers stack */}
-            <div className="absolute bottom-8 right-8 z-20 flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
+            {/* Viewers stack — hidden on mobile */}
+            <div className="absolute bottom-4 sm:bottom-8 right-4 sm:right-8 z-20 hidden sm:flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
               <div className="flex -space-x-2">
                 {[1,2,3,4].map(i => (
                   <div key={i} className="w-8 h-8 rounded-full border-2 border-midnight bg-foreground/20" />
@@ -340,7 +339,7 @@ export default function AdminOverview() {
           <div className="grid grid-cols-2 gap-4">
             <button 
               onClick={handleOpenBible}
-              className="flex flex-col items-center justify-center gap-4 p-8 rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-primary/10 hover:border-primary/20 hover:scale-[1.05] transition-all group shadow-sm"
+              className="flex flex-col items-center justify-center gap-3 sm:gap-4 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-primary/10 hover:border-primary/20 hover:scale-[1.05] transition-all group shadow-sm"
             >
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                 <Book className="text-primary group-hover:scale-110 transition-transform" size={24} />
@@ -350,7 +349,7 @@ export default function AdminOverview() {
             
             <button 
                 onClick={() => toast({ title: "Donations Summary", description: `Total contributions recorded: ₦${counts.donations.toLocaleString()}` })}
-                className="flex flex-col items-center justify-center gap-4 p-8 rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-yellow-500/10 hover:border-yellow-500/20 hover:scale-[1.05] transition-all group shadow-sm"
+                className="flex flex-col items-center justify-center gap-3 sm:gap-4 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-yellow-500/10 hover:border-yellow-500/20 hover:scale-[1.05] transition-all group shadow-sm"
             >
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
                 <Zap className="text-yellow-500 group-hover:scale-110 transition-transform" size={24} />
@@ -360,7 +359,7 @@ export default function AdminOverview() {
 
             <button 
               onClick={() => window.location.href = '/admin/contacts'}
-              className="flex flex-col items-center justify-center gap-4 p-8 rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-primary/10 hover:border-primary/20 hover:scale-[1.05] transition-all group shadow-sm"
+              className="flex flex-col items-center justify-center gap-3 sm:gap-4 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-primary/10 hover:border-primary/20 hover:scale-[1.05] transition-all group shadow-sm"
             >
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                 <MessageSquare className="text-primary group-hover:scale-110 transition-transform" size={24} />
@@ -369,7 +368,7 @@ export default function AdminOverview() {
               {counts.contacts > 0 && <span className="text-[8px] font-bold text-primary mt-1">{counts.contacts} New</span>}
             </button>
 
-            <button className="flex flex-col items-center justify-center gap-4 p-8 rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-primary/10 hover:border-primary/20 hover:scale-[1.05] transition-all group shadow-sm">
+            <button className="flex flex-col items-center justify-center gap-3 sm:gap-4 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-primary/10 hover:border-primary/20 hover:scale-[1.05] transition-all group shadow-sm">
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                 <UsersIcon className="text-primary group-hover:scale-110 transition-transform" size={24} />
               </div>
@@ -378,7 +377,7 @@ export default function AdminOverview() {
 
             <button 
               onClick={reshufflePrayer}
-              className="flex flex-col items-center justify-center gap-4 p-8 rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-yellow-500/10 hover:border-yellow-500/20 hover:scale-[1.05] transition-all group shadow-sm"
+              className="flex flex-col items-center justify-center gap-3 sm:gap-4 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] bg-foreground/5 border border-foreground/5 hover:bg-yellow-500/10 hover:border-yellow-500/20 hover:scale-[1.05] transition-all group shadow-sm"
             >
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
                 <HandIcon className="text-yellow-500 group-hover:scale-110 transition-transform" size={24} />

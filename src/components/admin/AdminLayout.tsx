@@ -105,20 +105,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         isOpen={isSidebarOpen} 
         setIsOpen={setIsSidebarOpen} 
       />
-      <main className="flex-1 ml-0 md:ml-64 p-4 md:p-8 relative overflow-y-auto max-h-screen">
+      <main className="flex-1 ml-0 md:ml-64 p-3 sm:p-4 md:p-8 relative overflow-y-auto max-h-screen min-w-0">
         {/* Top bar */}
-        <header className="flex items-center justify-between mb-8 md:mb-12">
-          <div className="flex items-center gap-3">
+        <header className="flex items-center justify-between mb-6 md:mb-12 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <button 
-              className="md:hidden p-2 -ml-2 rounded-xl hover:bg-foreground/5 text-foreground/70"
+              className="md:hidden p-2 -ml-1 rounded-xl hover:bg-foreground/5 text-foreground/70 shrink-0"
               onClick={() => setIsSidebarOpen(true)}
             >
-              <Menu size={24} />
+              <Menu size={22} />
             </button>
-            <h2 className="text-foreground/40 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] mb-1">Impact House Admin</h2>
+            <h2 className="text-foreground/40 text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] truncate">Impact House Admin</h2>
           </div>
           
-          <div className="flex items-center gap-2 md:gap-6">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 lg:gap-6 shrink-0">
             <div className="relative group hidden sm:block">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-primary transition-colors" size={18} />
               <input 
@@ -168,7 +168,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute top-full right-0 mt-2 w-80 glassmorphic-card p-6 shadow-2xl z-50 animate-slide-up border border-primary/10">
+                <div className="absolute top-full right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] glassmorphic-card p-5 sm:p-6 shadow-2xl z-50 animate-slide-up border border-primary/10">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="font-serif text-lg font-bold">Activity Log</h3>
                     <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-full">Live</span>

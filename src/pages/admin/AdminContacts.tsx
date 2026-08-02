@@ -123,7 +123,7 @@ export default function AdminContacts() {
       ) : (
         <div className="grid grid-cols-1 gap-6">
           {filteredMessages.length > 0 ? filteredMessages.map((msg) => (
-            <div key={msg.id} className="glassmorphic-card group hover:border-primary/20 transition-all p-8">
+            <div key={msg.id} className="glassmorphic-card group hover:border-primary/20 transition-all p-5 sm:p-8">
               <div className="flex flex-col md:flex-row gap-8">
                 <div className="md:w-64 space-y-4 shrink-0">
                   <div className="flex items-center gap-3">
@@ -157,7 +157,7 @@ export default function AdminContacts() {
                   </div>
                 </div>
 
-                <div className="flex-1 space-y-4 border-l border-foreground/5 md:pl-8">
+                <div className="flex-1 space-y-4 pt-4 mt-4 border-t md:border-t-0 md:border-l border-foreground/5 md:pl-8">
                   <div className="flex items-center gap-2 text-primary">
                     <MessageSquare size={16} />
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Message Content</span>
@@ -169,7 +169,7 @@ export default function AdminContacts() {
                   </div>
                 </div>
 
-                <div className="flex md:flex-col justify-end items-center gap-3">
+                <div className="flex md:flex-col justify-end items-center gap-3 pt-2 md:pt-0">
                   <button 
                     onClick={() => deleteMessage(msg.id)}
                     title="Delete message"

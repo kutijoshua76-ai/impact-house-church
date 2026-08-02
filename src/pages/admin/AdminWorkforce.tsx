@@ -104,23 +104,23 @@ function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClo
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="glassmorphic border-white/10 max-w-2xl max-h-[90vh] overflow-y-auto p-0">
         {/* Header banner */}
-        <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 pb-6 border-b border-white/10">
+        <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 sm:p-8 pb-5 sm:pb-6 border-b border-white/10">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-xl transition-colors text-foreground/40 hover:text-foreground"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 hover:bg-white/10 rounded-xl transition-colors text-foreground/40 hover:text-foreground"
           >
             <X size={18} />
           </button>
 
-          <div className="flex items-center gap-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pr-8">
             {/* Avatar */}
-            <div className="w-16 h-16 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-bold text-xl shrink-0 border border-primary/20">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-bold text-xl shrink-0 border border-primary/20">
               {initials}
             </div>
 
             <div className="flex-1 min-w-0">
               <DialogHeader>
-                <DialogTitle className="font-serif text-2xl font-bold mb-1 text-left">
+                <DialogTitle className="font-serif text-xl sm:text-2xl font-bold mb-1 text-left">
                   {app.full_name}
                 </DialogTitle>
               </DialogHeader>
@@ -139,7 +139,7 @@ function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClo
           </div>
 
           {/* Quick contact row */}
-          <div className="flex flex-wrap gap-4 mt-5">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4">
             {app.email && (
               <a href={`mailto:${app.email}`} className="flex items-center gap-2 text-xs text-foreground/50 hover:text-primary transition-colors">
                 <Mail size={13} /> {app.email}
@@ -159,7 +159,7 @@ function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClo
         </div>
 
         {/* Body */}
-        <div className="p-8 space-y-8">
+        <div className="p-5 sm:p-8 space-y-6 sm:space-y-8">
 
           {/* Personal Details */}
           <div>
@@ -167,7 +167,7 @@ function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClo
               <User size={15} className="text-primary" />
               <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Personal Details</h3>
             </div>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-5 bg-foreground/[0.03] rounded-2xl p-5 border border-foreground/5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 sm:gap-y-5 bg-foreground/[0.03] rounded-2xl p-4 sm:p-5 border border-foreground/5">
               <DetailField label="Full Name" value={app.full_name} />
               <DetailField label="Gender" value={app.gender ? app.gender.charAt(0).toUpperCase() + app.gender.slice(1).replace(/-/g, ' ') : undefined} />
               <DetailField label="Email Address" value={app.email} />
@@ -182,7 +182,7 @@ function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClo
               <Clock size={15} className="text-primary" />
               <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Service Preferences</h3>
             </div>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-5 bg-foreground/[0.03] rounded-2xl p-5 border border-foreground/5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 bg-foreground/[0.03] rounded-2xl p-4 sm:p-5 border border-foreground/5">
               <DetailField label="Department Applied" value={app.department} />
               <DetailField label="Availability" value={app.availability} />
             </div>
