@@ -7,7 +7,9 @@ import {
   MoreHorizontal,
   Loader2,
   Quote,
-  Download
+  Download,
+  Trash2,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
@@ -19,6 +21,8 @@ export default function AdminTestimonies() {
   const [filter, setFilter] = useState('all');
   const [testimonies, setTestimonies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTestimony, setSelectedTestimony] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,6 +73,39 @@ export default function AdminTestimonies() {
         title: "Update Failed",
         description: error.message,
       });
+    }
+  };
+
+  const deleteTestimony = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this testimony? This action cannot be undone.')) return;
+    
+    try {
+      setIsDeleting(id);
+      const { error } = await supabase
+        .from('testimonies')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Testimony Deleted",
+        description: "The testimony has been successfully deleted.",
+      });
+
+      if (selectedTestimony?.id === id) {
+        setSelectedTestimony(null);
+      }
+      
+      fetchTestimonies();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Delete Failed",
+        description: error.message,
+      });
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -148,7 +185,7 @@ export default function AdminTestimonies() {
                 </button>
               </div>
 
-              <div className="flex-1 mb-8 relative z-10">
+              <div className="flex-1 mb-8 relative z-10 cursor-pointer group/content" onClick={() => setSelectedTestimony(testimony)}>
                 <div className="flex justify-between items-start mb-4">
                   <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-[0.2em]">
                     {testimony.title || 'Personal Story'}
@@ -162,18 +199,21 @@ export default function AdminTestimonies() {
                     {testimony.status}
                   </span>
                 </div>
-                <p className="text-sm text-foreground/70 leading-relaxed italic line-clamp-4">
+                <p className="text-sm text-foreground/70 leading-relaxed italic line-clamp-4 group-hover/content:text-foreground transition-colors">
                   "{testimony.content}"
                 </p>
+                <div className="mt-2 text-[10px] text-primary font-bold uppercase tracking-widest opacity-0 group-hover/content:opacity-100 transition-opacity">
+                  Read Full Testimony &rarr;
+                </div>
               </div>
 
               <div className="pt-6 border-t border-foreground/5 flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
                   {testimony.status !== 'approved' && (
                     <button 
                       onClick={() => updateStatus(testimony.id, 'approved')}
                       title="Approve testimony" 
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-400/10 text-green-400 text-[10px] font-bold uppercase tracking-widest hover:bg-green-400/20 transition-all"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-400/10 text-green-400 text-[10px] font-bold uppercase tracking-widest hover:bg-green-400/20 transition-all"
                     >
                       <CheckCircle2 size={14} />
                       Approve
@@ -183,16 +223,26 @@ export default function AdminTestimonies() {
                     <button 
                       onClick={() => updateStatus(testimony.id, 'rejected')}
                       title="Reject testimony" 
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-foreground/5 text-foreground/40 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500/10 hover:text-rose-500 transition-all"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-foreground/5 text-foreground/40 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500/10 hover:text-rose-500 transition-all"
                     >
                       <XCircle size={14} />
                       Reject
                     </button>
                   )}
                 </div>
-                <button title="Share testimony" className="p-2 text-foreground/20 hover:text-primary transition-colors">
-                  <Share2 size={16} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => deleteTestimony(testimony.id)}
+                    disabled={isDeleting === testimony.id}
+                    title="Delete testimony" 
+                    className="p-2 text-foreground/20 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all disabled:opacity-50"
+                  >
+                    {isDeleting === testimony.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                  </button>
+                  <button title="Share testimony" className="p-2 text-foreground/20 hover:text-primary transition-colors">
+                    <Share2 size={16} />
+                  </button>
+                </div>
               </div>
             </div>
           )) : (
@@ -200,6 +250,73 @@ export default function AdminTestimonies() {
               <p className="text-foreground/20 italic font-serif text-xl tracking-wide">No testimonies found in this category.</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* View Modal */}
+      {selectedTestimony && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-background/80 backdrop-blur-sm animate-fade-in">
+          <div className="glassmorphic-card w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-slide-up border border-primary/20 shadow-2xl">
+            <button 
+              onClick={() => setSelectedTestimony(null)}
+              className="absolute top-6 right-6 p-2 rounded-xl bg-foreground/5 hover:bg-foreground/10 text-foreground/60 transition-colors"
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="p-8 sm:p-12">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-primary/20 border border-foreground/10 flex items-center justify-center shrink-0">
+                  <User size={24} className="text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-1">{selectedTestimony.full_name}</h2>
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs text-foreground/40 uppercase tracking-widest">
+                      {format(new Date(selectedTestimony.created_at), 'MMMM do, yyyy')}
+                    </p>
+                    <span className={cn(
+                      "text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-md",
+                      selectedTestimony.status === 'pending' ? "text-amber-400 bg-amber-400/10" :
+                      selectedTestimony.status === 'approved' ? "text-green-400 bg-green-400/10" :
+                      "text-rose-400 bg-rose-400/10"
+                    )}>
+                      {selectedTestimony.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-8 relative">
+                <Quote size={60} className="text-primary/10 absolute -top-4 -left-4 -z-10" />
+                <h3 className="font-serif text-xl font-bold text-primary mb-4">
+                  {selectedTestimony.title || 'Personal Story'}
+                </h3>
+                <div className="prose prose-invert max-w-none">
+                  <p className="text-foreground/80 leading-relaxed text-lg whitespace-pre-wrap">
+                    "{selectedTestimony.content}"
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-8 border-t border-foreground/10">
+                <button 
+                  onClick={() => deleteTestimony(selectedTestimony.id)}
+                  disabled={isDeleting === selectedTestimony.id}
+                  className="px-6 py-3 rounded-xl bg-red-500/10 text-red-500 font-bold uppercase tracking-widest text-xs hover:bg-red-500/20 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isDeleting === selectedTestimony.id && <Loader2 size={14} className="animate-spin" />}
+                  Delete
+                </button>
+                <button 
+                  onClick={() => setSelectedTestimony(null)}
+                  className="px-6 py-3 rounded-xl bg-foreground/10 text-foreground font-bold uppercase tracking-widest text-xs hover:bg-foreground/20 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
