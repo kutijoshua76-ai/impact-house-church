@@ -71,12 +71,16 @@ export default function AdminDonations() {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('donations')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Deletion blocked by Supabase Row Level Security (RLS). Please add a DELETE policy in your Supabase dashboard.");
+      }
 
       setDonations(prev => prev.filter(donation => donation.id !== id));
       toast({

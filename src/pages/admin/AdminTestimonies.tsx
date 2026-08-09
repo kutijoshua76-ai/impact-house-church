@@ -54,12 +54,16 @@ export default function AdminTestimonies() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('testimonies')
         .update({ status: newStatus })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Update blocked by Supabase Row Level Security (RLS). Please add an UPDATE policy in your Supabase dashboard.");
+      }
 
       toast({
         title: `Testimony ${newStatus}`,
@@ -81,12 +85,16 @@ export default function AdminTestimonies() {
     
     try {
       setIsDeleting(id);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('testimonies')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Deletion blocked by Supabase Row Level Security (RLS). Please add a DELETE policy in your Supabase dashboard.");
+      }
 
       toast({
         title: "Testimony Deleted",
