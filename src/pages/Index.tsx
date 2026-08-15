@@ -391,6 +391,107 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Developer Portfolio Easter Egg */}
+      <a
+        href="https://my-portfolio-nine-roan-75.vercel.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="View developer portfolio"
+        className="portfolio-orb group fixed z-50"
+        style={{
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.04)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 0 18px rgba(226,176,145,0.12), inset 0 0 12px rgba(255,255,255,0.03)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          animation: 'portfolioOrb 4s ease-in-out infinite',
+          /* touch-action allows smooth tap on mobile */
+          touchAction: 'manipulation',
+        }}
+      >
+        {/* Invisible larger tap target for mobile */}
+        <span
+          style={{
+            position: 'absolute',
+            inset: '-10px',
+            borderRadius: '50%',
+          }}
+        />
+        {/* Inner glow ring */}
+        <span
+          style={{
+            position: 'absolute',
+            inset: '-3px',
+            borderRadius: '50%',
+            background: 'transparent',
+            border: '1px solid rgba(226,176,145,0.0)',
+            transition: 'all 0.4s ease',
+          }}
+          className="group-hover:!border-rose-gold/30 group-hover:!shadow-[0_0_24px_rgba(226,176,145,0.25)]"
+        />
+        {/* Arrow icon */}
+        <svg
+          className="portfolio-orb-icon group-hover:!stroke-[rgba(226,176,145,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="rgba(226,176,145,0.45)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ transition: 'all 0.4s ease' }}
+        >
+          <line x1="7" y1="17" x2="17" y2="7" />
+          <polyline points="7 7 17 7 17 17" />
+        </svg>
+        <style>{`
+          /* Mobile first: small & tucked in */
+          .portfolio-orb {
+            width: 44px;
+            height: 44px;
+            bottom: 16px;
+            left: 16px;
+          }
+          .portfolio-orb-icon {
+            width: 15px;
+            height: 15px;
+          }
+          /* Tablet and up */
+          @media (min-width: 640px) {
+            .portfolio-orb {
+              width: 56px;
+              height: 56px;
+              bottom: 24px;
+              left: 24px;
+            }
+            .portfolio-orb-icon {
+              width: 18px;
+              height: 18px;
+            }
+          }
+          @keyframes portfolioOrb {
+            0%, 100% { box-shadow: 0 0 18px rgba(226,176,145,0.10), inset 0 0 12px rgba(255,255,255,0.03); }
+            50% { box-shadow: 0 0 28px rgba(226,176,145,0.22), inset 0 0 16px rgba(255,255,255,0.05); }
+          }
+          .portfolio-orb:hover, .portfolio-orb:focus-visible {
+            transform: scale(1.12);
+            background: rgba(226,176,145,0.08) !important;
+            border-color: rgba(226,176,145,0.25) !important;
+            outline: none;
+          }
+          /* Active state for touch devices */
+          .portfolio-orb:active {
+            transform: scale(0.95);
+            background: rgba(226,176,145,0.15) !important;
+          }
+        `}</style>
+      </a>
+
       <Footer />
     </div>
   );
