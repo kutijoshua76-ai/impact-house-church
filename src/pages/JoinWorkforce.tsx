@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
+import { notifyAdmins } from "@/lib/notifications";
 
 // ─── Departments ───────────────────────────────────────────────────────────────
 const departments = [
@@ -274,6 +275,12 @@ const JoinWorkforce = () => {
       }]);
 
       if (error) throw error;
+
+      // Trigger admin email notification via Resend
+      notifyAdmins('workforce', {
+        ...formData,
+        department: selectedDept.name,
+      });
 
       setStep("success");
       window.scrollTo({ top: 0, behavior: "smooth" });

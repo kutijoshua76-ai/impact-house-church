@@ -7,6 +7,7 @@ import { churchPhotos } from "@/assets/church-photos";
 import { Heart, Coins, Landmark, ArrowRight, ShieldCheck, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import { notifyAdmins } from "@/lib/notifications";
 import BorderGlow from "@/components/ui/border-glow";
 
 const Tithes = () => {
@@ -219,6 +220,13 @@ const Tithes = () => {
                     if (error) {
                       alert('Error reporting donation: ' + error.message);
                     } else {
+                      // Trigger admin email notification via Resend
+                      notifyAdmins('donation', {
+                        donorName: donor_name,
+                        amount: amount,
+                        type: 'tithe'
+                      });
+
                       alert('Thank you for your partnership! Your seed has been recorded.');
                       (e.target as HTMLFormElement).reset();
                     }

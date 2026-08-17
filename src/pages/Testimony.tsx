@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
+import { notifyAdmins } from "@/lib/notifications";
 
 
 const Testimony = () => {
@@ -46,6 +47,9 @@ const Testimony = () => {
         }]);
 
       if (error) throw error;
+
+      // Trigger admin email notification via Resend
+      notifyAdmins('testimony', formData);
 
       toast({
         title: "Testimony Shared!",

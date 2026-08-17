@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
+import { notifyAdmins } from "@/lib/notifications";
 import { SEO } from "@/components/SEO";
 
 
@@ -134,6 +135,9 @@ const FirstTimer = () => {
         }]);
 
       if (error) throw error;
+
+      // Trigger admin email notification via Resend
+      notifyAdmins('first_timer', formData);
 
       toast({
         title: "Welcome to the Family!",

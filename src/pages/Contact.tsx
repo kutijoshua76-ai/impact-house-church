@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import { Mail, Phone, MessageCircle, Facebook, Instagram, Youtube, MapPin, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { notifyAdmins } from "@/lib/notifications";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import BorderGlow from "@/components/ui/border-glow";
@@ -58,6 +59,9 @@ const Contact = () => {
         }]);
 
       if (error) throw error;
+
+      // Trigger admin email notification via Resend
+      notifyAdmins('contact', formData);
 
       toast({
         title: "Message Broadcasted!",
