@@ -16,11 +16,16 @@ import {
   MessageSquare,
   Star,
   X,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+  Check,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { format } from 'date-fns';
 import { exportToPDF } from '@/lib/pdf-export';
 import { useToast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -88,7 +93,19 @@ function DetailField({ label, value, full = false }: { label: string; value?: st
 }
 
 // Applicant Detail Modal
-function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClose: () => void }) {
+function ApplicantModal({
+  app,
+  open,
+  onClose,
+  onUpdateStatus,
+  isUpdating,
+}: {
+  app: any;
+  open: boolean;
+  onClose: () => void;
+  onUpdateStatus: (id: string, status: 'approved' | 'rejected' | 'pending') => void;
+  isUpdating: boolean;
+}) {
   if (!app) return null;
 
   const initials = app.full_name
@@ -99,6 +116,7 @@ function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClo
     .toUpperCase() || '?';
 
   const badgeClass = deptColour[app.department] || 'bg-foreground/5 text-foreground/40 border-foreground/10';
+  const status = app.status || 'pending';
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -129,6 +147,22 @@ function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClo
                   <Briefcase size={10} />
                   {app.department}
                 </span>
+
+                {/* Status Badge */}
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-widest border",
+                    status === 'approved' && "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+                    status === 'rejected' && "bg-rose-500/10 text-rose-400 border-rose-500/30",
+                    status === 'pending' && "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                  )}
+                >
+                  {status === 'approved' && <CheckCircle2 size={11} />}
+                  {status === 'rejected' && <XCircle size={11} />}
+                  {status === 'pending' && <Clock size={11} />}
+                  {status.toUpperCase()}
+                </span>
+
                 {app.age_range && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-foreground/5 text-foreground/40 border border-foreground/10">
                     Age: {app.age_range}
@@ -217,6 +251,61 @@ function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClo
           </div>
 
         </div>
+
+        {/* Modal Approval Footer */}
+        <div className="p-5 sm:p-6 bg-foreground/[0.02] border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs text-foreground/50 flex items-center gap-2">
+            Status:
+            <span
+              className={cn(
+                "font-bold uppercase tracking-wider text-[11px] px-2.5 py-0.5 rounded-lg border",
+                status === 'approved' && "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+                status === 'rejected' && "bg-rose-500/10 text-rose-400 border-rose-500/30",
+                status === 'pending' && "bg-amber-500/10 text-amber-400 border-amber-500/30"
+              )}
+            >
+              {status}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {status !== 'approved' && (
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={() => onUpdateStatus(app.id, 'approved')}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-500/10"
+              >
+                {isUpdating ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={15} />}
+                Approve Member
+              </button>
+            )}
+
+            {status !== 'rejected' && (
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={() => onUpdateStatus(app.id, 'rejected')}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-500/20 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {isUpdating ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={15} />}
+                Reject
+              </button>
+            )}
+
+            {status !== 'pending' && (
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={() => onUpdateStatus(app.id, 'pending')}
+                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-foreground/5 text-foreground/50 hover:bg-foreground/10 hover:text-foreground border border-foreground/10 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <RotateCcw size={14} />
+                Mark as Pending
+              </button>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -225,8 +314,10 @@ function ApplicantModal({ app, open, onClose }: { app: any; open: boolean; onClo
 export default function AdminWorkforce() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('All Departments');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [viewingApp, setViewingApp] = useState<any | null>(null);
   const { toast } = useToast();
 
@@ -251,6 +342,48 @@ export default function AdminWorkforce() {
     }
   };
 
+  const handleUpdateStatus = async (id: string, newStatus: 'approved' | 'rejected' | 'pending') => {
+    try {
+      setUpdatingId(id);
+      const { data, error } = await supabase
+        .from('workforce_applications')
+        .update({ status: newStatus })
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+
+      // Optimistically update applications list
+      setApplications((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a))
+      );
+
+      // Also update currently viewed application modal if open
+      if (viewingApp?.id === id) {
+        setViewingApp((prev: any) => (prev ? { ...prev, status: newStatus } : null));
+      }
+
+      const statusLabels = {
+        approved: "Member Approved",
+        rejected: "Application Rejected",
+        pending: "Moved to Pending",
+      };
+
+      toast({
+        title: statusLabels[newStatus],
+        description: `The application status has been updated to ${newStatus}.`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Status Update Failed",
+        description: error.message || "Failed to update member status.",
+      });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const filtered = applications.filter((a) => {
     const matchSearch =
       a.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -258,7 +391,9 @@ export default function AdminWorkforce() {
       a.phone?.includes(searchTerm) ||
       a.department?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchDept = selectedDept === 'All Departments' || a.department === selectedDept;
-    return matchSearch && matchDept;
+    const currentStatus = a.status || 'pending';
+    const matchStatus = statusFilter === 'all' || currentStatus === statusFilter;
+    return matchSearch && matchDept && matchStatus;
   });
 
   const handleDelete = async (id: string) => {
@@ -278,12 +413,13 @@ export default function AdminWorkforce() {
   };
 
   const handleExportPDF = () => {
-    const headers = ['Name', 'Email', 'Phone', 'Department', 'Availability', 'Reason', 'Date'];
+    const headers = ['Name', 'Email', 'Phone', 'Department', 'Status', 'Availability', 'Reason', 'Date'];
     const rows = filtered.map((a) => [
       a.full_name,
       a.email,
       a.phone || 'N/A',
       a.department,
+      (a.status || 'pending').toUpperCase(),
       a.availability || 'N/A',
       (a.reason || '').substring(0, 60) + (a.reason?.length > 60 ? '...' : ''),
       format(new Date(a.created_at), 'yyyy-MM-dd'),
@@ -291,14 +427,19 @@ export default function AdminWorkforce() {
     exportToPDF('Workforce Applications Report', headers, rows, 'workforce_applications_report');
   };
 
-  // Stats: top 3 departments
+  // Counts for status
+  const pendingCount = applications.filter((a) => !a.status || a.status === 'pending').length;
+  const approvedCount = applications.filter((a) => a.status === 'approved').length;
+  const rejectedCount = applications.filter((a) => a.status === 'rejected').length;
+
+  // Stats: top department
   const deptCounts = applications.reduce<Record<string, number>>((acc, a) => {
     acc[a.department] = (acc[a.department] || 0) + 1;
     return acc;
   }, {});
   const topDepts = Object.entries(deptCounts)
-    .sort((a, b) => (b[1] as number) - (a[1] as number))
-    .slice(0, 3);
+    .sort((a, b) => (b[1] as number) - (a[1] as number));
+  const topDept = topDepts[0];
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -308,6 +449,8 @@ export default function AdminWorkforce() {
         app={viewingApp}
         open={!!viewingApp}
         onClose={() => setViewingApp(null)}
+        onUpdateStatus={handleUpdateStatus}
+        isUpdating={updatingId === viewingApp?.id}
       />
 
       {/* Header */}
@@ -316,16 +459,16 @@ export default function AdminWorkforce() {
           <h1 className="font-serif text-3xl font-bold">
             Join the <span className="text-rose-gradient">Workforce</span>
           </h1>
-          <p className="text-foreground/40 text-sm mt-1">Manage department applications and service registrations</p>
+          <p className="text-foreground/40 text-sm mt-1">Manage and approve workforce members and department applications</p>
         </div>
 
         <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-4 w-full md:w-auto">
           {/* Search */}
-          <div className="relative flex-1 md:w-80 group">
+          <div className="relative flex-1 md:w-72 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-primary transition-colors" size={18} />
             <input
               type="text"
-              placeholder="Search by name, email, or department..."
+              placeholder="Search by name, email, department..."
               className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl pl-12 pr-6 py-3 text-sm focus:outline-none focus:border-primary/50 transition-all text-foreground"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -374,12 +517,61 @@ export default function AdminWorkforce() {
           <p className="text-[10px] uppercase font-bold tracking-widest text-foreground/40 mb-1">Total Applications</p>
           <p className="text-3xl font-serif font-bold text-primary">{applications.length}</p>
         </div>
-        {topDepts.map(([dept, count]) => (
-          <div key={dept} className="glassmorphic rounded-2xl p-5 border border-foreground/10">
-            <p className="text-[10px] uppercase font-bold tracking-widest text-foreground/40 mb-1 truncate">{dept}</p>
-            <p className="text-3xl font-serif font-bold">{count as number}</p>
-          </div>
-        ))}
+        <div className="glassmorphic rounded-2xl p-5 border border-emerald-500/20 bg-emerald-500/[0.02]">
+          <p className="text-[10px] uppercase font-bold tracking-widest text-emerald-400/70 mb-1">Approved Members</p>
+          <p className="text-3xl font-serif font-bold text-emerald-400">{approvedCount}</p>
+        </div>
+        <div className="glassmorphic rounded-2xl p-5 border border-amber-500/20 bg-amber-500/[0.02]">
+          <p className="text-[10px] uppercase font-bold tracking-widest text-amber-400/70 mb-1">Pending Review</p>
+          <p className="text-3xl font-serif font-bold text-amber-400">{pendingCount}</p>
+        </div>
+        <div className="glassmorphic rounded-2xl p-5 border border-foreground/10">
+          <p className="text-[10px] uppercase font-bold tracking-widest text-foreground/40 mb-1 truncate">
+            {topDept ? `Top Dept (${topDept[0]})` : 'Top Department'}
+          </p>
+          <p className="text-3xl font-serif font-bold">{topDept ? (topDept[1] as number) : 0}</p>
+        </div>
+      </div>
+
+      {/* Status Filter Tabs */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex bg-foreground/5 p-1 rounded-2xl border border-foreground/10 overflow-x-auto">
+          {(
+            [
+              { id: 'all', label: 'All', count: applications.length },
+              { id: 'pending', label: 'Pending', count: pendingCount },
+              { id: 'approved', label: 'Approved', count: approvedCount },
+              { id: 'rejected', label: 'Rejected', count: rejectedCount },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setStatusFilter(tab.id)}
+              className={cn(
+                "px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap",
+                statusFilter === tab.id
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : "text-foreground/40 hover:text-foreground"
+              )}
+            >
+              <span>{tab.label}</span>
+              <span
+                className={cn(
+                  "px-2 py-0.5 rounded-md text-[10px] font-bold",
+                  statusFilter === tab.id
+                    ? "bg-black/20 text-white"
+                    : "bg-foreground/10 text-foreground/60"
+                )}
+              >
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <p className="text-xs text-foreground/40">
+          Showing <strong className="text-foreground">{filtered.length}</strong> of {applications.length} applications
+        </p>
       </div>
 
       {/* Table */}
@@ -391,131 +583,193 @@ export default function AdminWorkforce() {
               <p className="text-xs font-bold uppercase tracking-widest text-foreground/20">Loading Applications...</p>
             </div>
           ) : (
-            <table className="w-full min-w-[900px] text-left border-collapse">
+            <table className="w-full min-w-[950px] text-left border-collapse">
               <thead>
                 <tr className="border-b border-foreground/5 bg-foreground/[0.02]">
-                  <th className="px-8 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Applicant</th>
-                  <th className="px-8 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Department</th>
-                  <th className="px-8 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Availability</th>
-                  <th className="px-8 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Reason</th>
-                  <th className="px-8 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Date</th>
-                  <th className="px-8 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40 text-right">Actions</th>
+                  <th className="px-6 py-5 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Applicant</th>
+                  <th className="px-6 py-5 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Department</th>
+                  <th className="px-6 py-5 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Status</th>
+                  <th className="px-6 py-5 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Availability</th>
+                  <th className="px-6 py-5 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Reason</th>
+                  <th className="px-6 py-5 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40">Date</th>
+                  <th className="px-6 py-5 text-[10px] uppercase font-bold tracking-[0.2em] text-foreground/40 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-foreground/5">
-                {filtered.length > 0 ? filtered.map((app) => (
-                  <tr
-                    key={app.id}
-                    className="hover:bg-foreground/[0.03] transition-colors group text-foreground cursor-pointer"
-                    onClick={() => setViewingApp(app)}
-                  >
-                    {/* Applicant */}
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
-                          {app.full_name?.charAt(0) || '?'}
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm mb-0.5">{app.full_name}</p>
-                          <p className="text-[10px] text-foreground/30 flex items-center gap-1.5">
-                            <Mail size={10} /> {app.email}
-                          </p>
-                          {app.phone && (
-                            <p className="text-[10px] text-foreground/30 flex items-center gap-1.5 mt-0.5">
-                              <Phone size={10} /> {app.phone}
+                {filtered.length > 0 ? filtered.map((app) => {
+                  const status = app.status || 'pending';
+                  const isItemUpdating = updatingId === app.id;
+
+                  return (
+                    <tr
+                      key={app.id}
+                      className="hover:bg-foreground/[0.03] transition-colors group text-foreground cursor-pointer"
+                      onClick={() => setViewingApp(app)}
+                    >
+                      {/* Applicant */}
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
+                            {app.full_name?.charAt(0) || '?'}
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm mb-0.5">{app.full_name}</p>
+                            <p className="text-[10px] text-foreground/30 flex items-center gap-1.5">
+                              <Mail size={10} /> {app.email}
                             </p>
-                          )}
+                            {app.phone && (
+                              <p className="text-[10px] text-foreground/30 flex items-center gap-1.5 mt-0.5">
+                                <Phone size={10} /> {app.phone}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Department */}
-                    <td className="px-8 py-6">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border ${deptColour[app.department] || 'bg-foreground/5 text-foreground/40 border-foreground/10'}`}>
-                        <Briefcase size={10} />
-                        {app.department}
-                      </span>
-                      {app.age_range && (
-                        <p className="text-[10px] text-foreground/30 mt-2">Age: {app.age_range}</p>
-                      )}
-                    </td>
-
-                    {/* Availability */}
-                    <td className="px-8 py-6">
-                      <p className="text-sm text-foreground/70 max-w-[120px]">{app.availability || '—'}</p>
-                    </td>
-
-                    {/* Reason */}
-                    <td className="px-8 py-6 max-w-[200px]">
-                      <p className="text-xs text-foreground/50 line-clamp-2 leading-relaxed">
-                        {app.reason || <span className="italic text-foreground/20">Not provided</span>}
-                      </p>
-                    </td>
-
-                    {/* Date */}
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2 text-foreground/50 text-sm">
-                        <Calendar size={14} />
-                        {format(new Date(app.created_at), 'MMM dd, yyyy')}
-                      </div>
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-8 py-6 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-2">
-                        {/* View Details */}
-                        <button
-                          title="View applicant details"
-                          onClick={() => setViewingApp(app)}
-                          className="p-2 hover:bg-primary/10 rounded-lg text-primary/40 hover:text-primary transition-colors"
-                        >
-                          <Eye size={18} />
-                        </button>
-
-                        {app.phone && (
-                          <a
-                            href={`tel:${app.phone}`}
-                            title="Call applicant"
-                            className="p-2 hover:bg-foreground/10 rounded-lg text-foreground/30 hover:text-foreground transition-colors"
-                          >
-                            <Phone size={18} />
-                          </a>
+                      {/* Department */}
+                      <td className="px-6 py-5">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border ${deptColour[app.department] || 'bg-foreground/5 text-foreground/40 border-foreground/10'}`}>
+                          <Briefcase size={10} />
+                          {app.department}
+                        </span>
+                        {app.age_range && (
+                          <p className="text-[10px] text-foreground/30 mt-1">Age: {app.age_range}</p>
                         )}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button title="Delete application" className="p-2 hover:bg-red-500/10 rounded-lg text-red-500/50 hover:text-red-500 transition-colors">
-                              <Trash2 size={18} />
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-6 py-5">
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-widest border",
+                            status === 'approved' && "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+                            status === 'rejected' && "bg-rose-500/10 text-rose-400 border-rose-500/30",
+                            status === 'pending' && "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                          )}
+                        >
+                          {status === 'approved' && <CheckCircle2 size={11} />}
+                          {status === 'rejected' && <XCircle size={11} />}
+                          {status === 'pending' && <Clock size={11} />}
+                          {status}
+                        </span>
+                      </td>
+
+                      {/* Availability */}
+                      <td className="px-6 py-5">
+                        <p className="text-xs text-foreground/70 max-w-[120px]">{app.availability || '—'}</p>
+                      </td>
+
+                      {/* Reason */}
+                      <td className="px-6 py-5 max-w-[180px]">
+                        <p className="text-xs text-foreground/50 line-clamp-2 leading-relaxed">
+                          {app.reason || <span className="italic text-foreground/20">Not provided</span>}
+                        </p>
+                      </td>
+
+                      {/* Date */}
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center gap-2 text-foreground/50 text-xs">
+                          <Calendar size={13} />
+                          {format(new Date(app.created_at), 'MMM dd, yyyy')}
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-6 py-5 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1.5">
+
+                          {/* Quick Approval Action */}
+                          {status !== 'approved' && (
+                            <button
+                              title="Approve member"
+                              disabled={isItemUpdating}
+                              onClick={() => handleUpdateStatus(app.id, 'approved')}
+                              className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50"
+                            >
+                              {isItemUpdating ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
                             </button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="glassmorphic border-white/10">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete this application?</AlertDialogTitle>
-                              <AlertDialogDescription className="text-foreground/60">
-                                This will permanently delete the application from <strong className="text-foreground">{app.full_name}</strong> for the {app.department} unit. This cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="border-white/10 hover:bg-white/5">Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(app.id)}
-                                className="bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </td>
-                  </tr>
-                )) : (
+                          )}
+
+                          {/* Quick Reject Action */}
+                          {status !== 'rejected' && (
+                            <button
+                              title="Reject application"
+                              disabled={isItemUpdating}
+                              onClick={() => handleUpdateStatus(app.id, 'rejected')}
+                              className="p-2 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50"
+                            >
+                              {isItemUpdating ? <Loader2 size={15} className="animate-spin" /> : <XCircle size={15} />}
+                            </button>
+                          )}
+
+                          {/* Mark as Pending if already approved/rejected */}
+                          {status !== 'pending' && (
+                            <button
+                              title="Revert to Pending"
+                              disabled={isItemUpdating}
+                              onClick={() => handleUpdateStatus(app.id, 'pending')}
+                              className="p-2 rounded-xl bg-foreground/5 text-foreground/40 hover:bg-foreground/15 hover:text-foreground transition-all disabled:opacity-50"
+                            >
+                              <RotateCcw size={15} />
+                            </button>
+                          )}
+
+                          {/* View Details */}
+                          <button
+                            title="View applicant details"
+                            onClick={() => setViewingApp(app)}
+                            className="p-2 hover:bg-primary/10 rounded-xl text-primary/40 hover:text-primary transition-colors"
+                          >
+                            <Eye size={16} />
+                          </button>
+
+                          {app.phone && (
+                            <a
+                              href={`tel:${app.phone}`}
+                              title="Call applicant"
+                              className="p-2 hover:bg-foreground/10 rounded-xl text-foreground/30 hover:text-foreground transition-colors"
+                            >
+                              <Phone size={16} />
+                            </a>
+                          )}
+
+                          {/* Delete */}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button title="Delete application" className="p-2 hover:bg-red-500/10 rounded-xl text-red-500/40 hover:text-red-500 transition-colors">
+                                <Trash2 size={16} />
+                              </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="glassmorphic border-white/10">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this application?</AlertDialogTitle>
+                                <AlertDialogDescription className="text-foreground/60">
+                                  This will permanently delete the application from <strong className="text-foreground">{app.full_name}</strong> for the {app.department} unit. This cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="border-white/10 hover:bg-white/5">Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(app.id)}
+                                  className="bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }) : (
                   <tr>
-                    <td colSpan={6} className="px-8 py-20 text-center">
+                    <td colSpan={7} className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center gap-4">
                         <Users className="w-16 h-16 text-foreground/10" />
                         <p className="text-foreground/20 italic font-serif text-lg">
-                          {searchTerm || selectedDept !== 'All Departments'
-                            ? 'No applications match your search.'
+                          {searchTerm || selectedDept !== 'All Departments' || statusFilter !== 'all'
+                            ? 'No applications match your selected filters.'
                             : 'No workforce applications yet.'}
                         </p>
                       </div>

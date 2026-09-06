@@ -131,7 +131,8 @@ const FirstTimer = () => {
           campus: formData.campus,
           invited_by: formData.source,
           preferred_call_time: formData.callTime,
-          prayer_request: formData.prayerRequest
+          prayer_request: formData.prayerRequest,
+          status: 'pending',
         }]);
 
       if (error) throw error;

@@ -272,6 +272,7 @@ const JoinWorkforce = () => {
         reason: formData.reason,
         experience: formData.experience,
         availability: formData.availability,
+        status: "pending",
       }]);
 
       if (error) throw error;
