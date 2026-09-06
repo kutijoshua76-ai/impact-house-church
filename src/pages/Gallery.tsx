@@ -71,7 +71,7 @@ const Gallery = () => {
             We've kept the gallery light for a smooth experience. Access the complete collection of every captured moment on Google Drive.
           </p>
           <a
-            href="https://drive.google.com/drive/folders/1GKsVvC1kQdjMD_AaLt6YVkiZPGQSm2f0?usp=drive_link"
+            href="https://drive.google.com/drive/folders/11uyLC4b2_YSEjwoxAveEZRQ8zZSmdxJR?usp=drive_link"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 px-10 py-4 bg-rose-gold text-midnight font-bold rounded-full hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_24px_rgba(226,176,145,0.35)]"
