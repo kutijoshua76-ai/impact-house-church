@@ -39,8 +39,8 @@ interface BibleVerse {
 interface Event {
   id: string;
   title: string;
-  event_date: string;
-  event_time: string;
+  event_date: string | null;
+  event_time: string | null;
   location: string;
 }
 
@@ -160,7 +160,7 @@ export default function AdminOverview() {
       const [firstTimersRes, testimoniesRes, eventsRes, donationsRes, versesRes, contactsRes] = await Promise.all([
         supabase.from('first_timers').select('*', { count: 'exact', head: true }),
         supabase.from('testimonies').select('*', { count: 'exact', head: true }),
-        supabase.from('events').select('*').order('event_date', { ascending: true }).limit(3),
+        supabase.from('events').select('*').order('event_date', { ascending: true, nullsFirst: false }).limit(3),
         supabase.from('donations').select('*'),
         supabase.from('bible_verses').select('*').eq('category', 'daily'),
         supabase.from('contact_messages').select('*', { count: 'exact', head: true })
@@ -313,13 +313,17 @@ export default function AdminOverview() {
             {events.length > 0 ? events.map((event) => (
               <div key={event.id} className="flex gap-4 group cursor-pointer animate-slide-up">
                 <div className="w-14 h-14 rounded-2xl bg-foreground/5 border border-foreground/10 flex flex-col items-center justify-center shrink-0 group-hover:border-primary/30 transition-all group-hover:scale-105 shadow-sm">
-                  <span className="text-[10px] font-bold uppercase text-primary">{format(new Date(event.event_date), 'MMM')}</span>
-                  <span className="text-xl font-serif font-bold">{format(new Date(event.event_date), 'dd')}</span>
+                  <span className="text-[10px] font-bold uppercase text-primary">
+                    {event.event_date ? format(new Date(event.event_date), 'MMM') : 'TBA'}
+                  </span>
+                  <span className="text-xl font-serif font-bold">
+                    {event.event_date ? format(new Date(event.event_date), 'dd') : '—'}
+                  </span>
                 </div>
                 <div className="flex-1 border-b border-foreground/5 pb-4">
                   <p className="text-sm font-bold truncate group-hover:text-primary transition-colors">{event.title}</p>
                   <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-wider mt-1">
-                    {format(new Date(event.event_date), 'MMMM d')} • {event.event_time || 'TBD'}
+                    {event.event_date ? format(new Date(event.event_date), 'MMMM d') : 'Date TBA'} • {event.event_time || 'TBD'}
                   </p>
                   <div className="flex items-center gap-1.5 mt-1">
                      <div className="w-1 h-1 rounded-full bg-primary/40" />

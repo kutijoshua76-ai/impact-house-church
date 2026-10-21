@@ -23,8 +23,8 @@ interface Event {
   id: string;
   title: string;
   description: string;
-  event_date: string;
-  event_time: string;
+  event_date: string | null;
+  event_time: string | null;
   location: string;
   image_url: string;
   created_at: string;
@@ -91,8 +91,17 @@ function EventLightbox({ event, onClose }: { event: Event; onClose: () => void }
             </div>
           )}
           <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-2xl text-midnight shadow-xl">
-            <p className="text-[10px] uppercase tracking-widest text-primary font-bold">{format(new Date(event.event_date), 'MMM yyyy')}</p>
-            <p className="text-3xl font-serif font-bold leading-none">{format(new Date(event.event_date), 'dd')}</p>
+            {event.event_date ? (
+              <>
+                <p className="text-[10px] uppercase tracking-widest text-primary font-bold">{format(new Date(event.event_date), 'MMM yyyy')}</p>
+                <p className="text-3xl font-serif font-bold leading-none">{format(new Date(event.event_date), 'dd')}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-[10px] uppercase tracking-widest text-primary font-bold">ANTICIPATED</p>
+                <p className="text-2xl font-serif font-bold leading-none">TBA</p>
+              </>
+            )}
           </div>
           {mediaIsVideo && (
             <div className="absolute bottom-4 right-4 flex items-center gap-2 bg-black/50 backdrop-blur rounded-xl px-3 py-1.5 text-white/70 text-xs font-bold uppercase tracking-wider">
@@ -111,7 +120,9 @@ function EventLightbox({ event, onClose }: { event: Event; onClose: () => void }
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2.5 bg-primary/10 border border-primary/20 rounded-2xl px-4 py-2.5">
               <Calendar size={16} className="text-primary flex-shrink-0" />
-              <span className="text-sm font-semibold text-foreground/80">{format(new Date(event.event_date), 'EEEE, MMMM do, yyyy')}</span>
+              <span className="text-sm font-semibold text-foreground/80">
+                {event.event_date ? format(new Date(event.event_date), 'EEEE, MMMM do, yyyy') : 'Date to be announced (Anticipated)'}
+              </span>
             </div>
             {event.event_time && (
               <div className="flex items-center gap-2.5 bg-foreground/5 border border-foreground/10 rounded-2xl px-4 py-2.5">
@@ -175,7 +186,7 @@ export default function AdminEvents() {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .order('event_date', { ascending: true });
+        .order('event_date', { ascending: true, nullsFirst: false });
       if (error) throw error;
       setEvents(data || []);
     } catch (err: unknown) {
@@ -200,7 +211,7 @@ export default function AdminEvents() {
       setForm({
         title: event.title,
         description: event.description || '',
-        event_date: event.event_date,
+        event_date: event.event_date || '',
         event_time: event.event_time || '',
         location: event.location || '',
         image_url: event.image_url || '',
@@ -273,22 +284,31 @@ export default function AdminEvents() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      let finalForm = { ...form };
+      let finalImageUrl = form.image_url;
 
       // If user picked a file, upload it first
       if (mediaMode === 'upload' && mediaFile) {
         setUploadProgress(5);
         const publicUrl = await uploadFileToStorage(mediaFile);
-        finalForm = { ...finalForm, image_url: publicUrl };
+        finalImageUrl = publicUrl;
         setForm(f => ({ ...f, image_url: publicUrl }));
       }
 
+      const payload = {
+        title: form.title.trim(),
+        description: form.description.trim() || null,
+        event_date: form.event_date ? form.event_date : null,
+        event_time: form.event_time ? form.event_time : null,
+        location: form.location.trim() || null,
+        image_url: finalImageUrl || null,
+      };
+
       if (editingEvent) {
-        const { error } = await supabase.from('events').update(finalForm).eq('id', editingEvent.id);
+        const { error } = await supabase.from('events').update(payload).eq('id', editingEvent.id);
         if (error) throw error;
         toast({ title: 'Success', description: 'Event updated successfully' });
       } else {
-        const { error } = await supabase.from('events').insert([finalForm]);
+        const { error } = await supabase.from('events').insert([payload]);
         if (error) throw error;
         toast({ title: 'Success', description: 'Event created successfully' });
       }
@@ -385,6 +405,11 @@ export default function AdminEvents() {
                     <ImageIcon className="text-foreground/10" size={48} />
                   </div>
                 )}
+                {!event.event_date && (
+                  <div className="absolute top-4 left-4 z-10 px-3 py-1 bg-midnight/80 backdrop-blur-md border border-primary/40 rounded-full text-[10px] font-bold uppercase tracking-wider text-primary shadow-lg">
+                    Anticipated
+                  </div>
+                )}
                 {/* Edit / Delete buttons — stop propagation so they don't open lightbox */}
                 <div
                   className="absolute top-4 right-4 flex gap-2"
@@ -413,11 +438,15 @@ export default function AdminEvents() {
               <div className="space-y-2 text-sm text-foreground/50">
                 <div className="flex items-center gap-2">
                   <Calendar size={14} className="text-primary" />
-                  {format(new Date(event.event_date), 'MMMM do, yyyy')}
+                  {event.event_date ? (
+                    format(new Date(event.event_date), 'MMMM do, yyyy')
+                  ) : (
+                    <span className="text-primary/90 font-medium italic">Date TBA (Anticipated)</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock size={14} className="text-primary" />
-                  {event.event_time || 'TBD'}
+                  {event.event_time || <span className="italic">Time TBA</span>}
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin size={14} className="text-primary" />
@@ -491,25 +520,52 @@ export default function AdminEvents() {
               {/* Date & Time */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="event-date" className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">Date</label>
+                  <div className="flex items-center justify-between ml-1">
+                    <label htmlFor="event-date" className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">
+                      Date <span className="text-foreground/30 font-normal lowercase">(optional)</span>
+                    </label>
+                    {form.event_date && (
+                      <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, event_date: '' }))}
+                        className="text-[10px] text-foreground/40 hover:text-red-400 transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                   <input
                     id="event-date"
-                    required
                     type="date"
                     value={form.event_date}
                     onChange={e => setForm(f => ({ ...f, event_date: e.target.value }))}
-                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-all"
+                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-all text-sm"
                   />
+                  <p className="text-[10px] text-foreground/30 ml-1">Leave empty if anticipated / TBA</p>
                 </div>
                 <div className="space-y-1.5">
-                  <label htmlFor="event-time" className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">Time</label>
+                  <div className="flex items-center justify-between ml-1">
+                    <label htmlFor="event-time" className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">
+                      Time <span className="text-foreground/30 font-normal lowercase">(optional)</span>
+                    </label>
+                    {form.event_time && (
+                      <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, event_time: '' }))}
+                        className="text-[10px] text-foreground/40 hover:text-red-400 transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                   <input
                     id="event-time"
                     type="time"
                     value={form.event_time}
                     onChange={e => setForm(f => ({ ...f, event_time: e.target.value }))}
-                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-all"
+                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-all text-sm"
                   />
+                  <p className="text-[10px] text-foreground/30 ml-1">Leave empty if time is not set</p>
                 </div>
               </div>
 

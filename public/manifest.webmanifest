@@ -1,0 +1,70 @@
+{
+  "name": "RCCG Impact House",
+  "short_name": "Impact House",
+  "description": "Welcome to RCCG Impact House — A vibrant church community raising impactful youths, rooted in faith, love, and the word of God.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0e0b14",
+  "theme_color": "#0e0b14",
+  "categories": ["lifestyle", "social", "faith"],
+  "icons": [
+    {
+      "src": "/pwa-64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Upcoming Events",
+      "short_name": "Events",
+      "description": "View upcoming events and services",
+      "url": "/events",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Photo Gallery",
+      "short_name": "Gallery",
+      "description": "Explore captured moments and albums",
+      "url": "/gallery",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Sermons & Word",
+      "short_name": "Sermons",
+      "description": "Listen to transformative sermons",
+      "url": "/sermons",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "First Time Guest",
+      "short_name": "First Timer",
+      "description": "Connect with us as a first timer",
+      "url": "/first-timer",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

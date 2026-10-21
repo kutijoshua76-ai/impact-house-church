@@ -10,8 +10,8 @@ interface Event {
   id: string;
   title: string;
   description: string;
-  event_date: string;
-  event_time: string;
+  event_date: string | null;
+  event_time: string | null;
   location: string;
   image_url: string;
 }
@@ -84,12 +84,25 @@ function EventLightbox({ event, onClose }: { event: Event; onClose: () => void }
 
           {/* Date badge overlay */}
           <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-2xl text-midnight shadow-xl">
-            <p className="text-[10px] uppercase tracking-widest text-primary font-bold">
-              {format(new Date(event.event_date), 'MMM yyyy')}
-            </p>
-            <p className="text-3xl font-serif font-bold leading-none">
-              {format(new Date(event.event_date), 'dd')}
-            </p>
+            {event.event_date ? (
+              <>
+                <p className="text-[10px] uppercase tracking-widest text-primary font-bold">
+                  {format(new Date(event.event_date), 'MMM yyyy')}
+                </p>
+                <p className="text-3xl font-serif font-bold leading-none">
+                  {format(new Date(event.event_date), 'dd')}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[10px] uppercase tracking-widest text-primary font-bold">
+                  ANTICIPATED
+                </p>
+                <p className="text-2xl font-serif font-bold leading-none">
+                  TBA
+                </p>
+              </>
+            )}
           </div>
 
           {/* Video play badge */}
@@ -121,7 +134,7 @@ function EventLightbox({ event, onClose }: { event: Event; onClose: () => void }
             <div className="flex items-center gap-2.5 bg-primary/10 border border-primary/20 rounded-2xl px-4 py-2.5">
               <Calendar size={16} className="text-primary flex-shrink-0" />
               <span className="text-sm font-semibold text-foreground/80">
-                {format(new Date(event.event_date), 'EEEE, MMMM do, yyyy')}
+                {event.event_date ? format(new Date(event.event_date), 'EEEE, MMMM do, yyyy') : 'Date to be announced (Anticipated)'}
               </span>
             </div>
             {event.event_time && (
@@ -161,7 +174,7 @@ export default function Events() {
         const { data, error } = await supabase
           .from('events')
           .select('*')
-          .order('event_date', { ascending: true });
+          .order('event_date', { ascending: true, nullsFirst: false });
         if (error) throw error;
         setEvents(data || []);
       } catch (err) {
@@ -256,8 +269,17 @@ export default function Events() {
                       </div>
                     )}
                     <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl text-midnight font-bold shadow-lg">
-                      <p className="text-xs uppercase tracking-widest text-primary">{format(new Date(event.event_date), 'MMM')}</p>
-                      <p className="text-2xl font-serif">{format(new Date(event.event_date), 'dd')}</p>
+                      {event.event_date ? (
+                        <>
+                          <p className="text-xs uppercase tracking-widest text-primary">{format(new Date(event.event_date), 'MMM')}</p>
+                          <p className="text-2xl font-serif">{format(new Date(event.event_date), 'dd')}</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs uppercase tracking-widest text-primary">SOON</p>
+                          <p className="text-xl font-serif">TBA</p>
+                        </>
+                      )}
                     </div>
                   </button>
 
@@ -269,8 +291,12 @@ export default function Events() {
 
                     <div className="space-y-3 mb-8">
                       <div className="flex items-center gap-3 text-sm text-foreground/40 font-medium">
+                        <Calendar size={16} className="text-primary" />
+                        {event.event_date ? format(new Date(event.event_date), 'EEEE, MMMM do, yyyy') : 'Date to be announced'}
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-foreground/40 font-medium">
                         <Clock size={16} className="text-primary" />
-                        {event.event_time || 'Check back soon'}
+                        {event.event_time || (event.event_date ? 'Time TBA' : 'Time to be announced')}
                       </div>
                       <div className="flex items-center gap-3 text-sm text-foreground/40 font-medium">
                         <MapPin size={16} className="text-primary" />

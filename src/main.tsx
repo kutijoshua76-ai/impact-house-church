@@ -9,8 +9,18 @@ meta.name = "theme-color";
 meta.content = "#0a0a0a";
 document.head.appendChild(meta);
 
+import { registerServiceWorker } from "./lib/pwa";
+
+// Register Service Worker for PWA & Push Notifications
+if (typeof window !== "undefined") {
+  window.addEventListener("load", () => {
+    registerServiceWorker();
+  });
+}
+
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider defaultTheme="dark">
     <App />
   </ThemeProvider>
 );
+
