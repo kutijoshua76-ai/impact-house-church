@@ -33,13 +33,13 @@ export const ProtectedRoute = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Super admin gate (e.g. User Management page)
-  if (requireSuperAdmin && profile !== null && !isSuperAdmin) {
+  // Super admin gate (e.g. User Management page) - Fail closed: must have profile and be super_admin
+  if (requireSuperAdmin && (!profile || !isSuperAdmin)) {
     return <AccessDenied />;
   }
 
-  // Admin gate (general dashboard access)
-  if (requireAdmin && profile !== null && !isAdmin) {
+  // Admin gate (general dashboard access) - Fail closed: must have profile and be admin or super_admin
+  if (requireAdmin && (!profile || !isAdmin)) {
     return <AccessDenied />;
   }
 

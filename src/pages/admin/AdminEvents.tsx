@@ -14,10 +14,12 @@ import {
   Link as LinkIcon,
   Eye,
   Play,
+  BellRing,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
+import { broadcastPushNotification } from '@/lib/pushBroadcast';
 
 interface Event {
   id: string;
@@ -167,6 +169,7 @@ export default function AdminEvents() {
     image_url: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [sendPushAlert, setSendPushAlert] = useState(false);
 
   // Media upload state
   const [mediaMode, setMediaMode] = useState<MediaInputMode>('upload');
@@ -202,6 +205,45 @@ export default function AdminEvents() {
     setUploadProgress(0);
     setIsDragging(false);
     setMediaMode('upload');
+  };
+
+  
+  const handleQuickBroadcastEvent = async (event: Event) => {
+    const formattedDate = event.event_date ? format(new Date(event.event_date), 'MMMM do') : 'Upcoming';
+    const confirmSend = window.confirm(
+      `Send push notification alert for "${event.title}" to all subscribers now?`
+    );
+    if (!confirmSend) return;
+
+    try {
+      const res = await broadcastPushNotification({
+        title: `🔔 Event Alert: ${event.title}`,
+        body: event.description 
+          ? event.description.slice(0, 110) 
+          : `Join us on ${formattedDate} at ${event.location || 'RCCG Impact House'} for ${event.title}.`,
+        url: '/events',
+        tag: `impact-event-${event.id}`,
+      });
+
+      if (res.success) {
+        toast({
+          title: 'Push Alert Dispatched',
+          description: `Delivered to ${res.success_count ?? 0} active subscriber(s).`,
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Broadcast Error',
+          description: res.error || 'Failed to dispatch notification.',
+        });
+      }
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err.message || 'Could not send broadcast.',
+      });
+    }
   };
 
   const handleOpenModal = (event?: Event) => {
@@ -307,10 +349,26 @@ export default function AdminEvents() {
         const { error } = await supabase.from('events').update(payload).eq('id', editingEvent.id);
         if (error) throw error;
         toast({ title: 'Success', description: 'Event updated successfully' });
+        if (sendPushAlert) {
+          broadcastPushNotification({
+            title: `📅 Event Update: ${payload.title}`,
+            body: payload.description ? payload.description.slice(0, 110) : `Updated event details for ${payload.title}. Tap to view.`,
+            url: '/events',
+            tag: `impact-event-${editingEvent.id}`,
+          }).catch((pushErr) => console.warn('Automatic push broadcast failed:', pushErr));
+        }
       } else {
         const { error } = await supabase.from('events').insert([payload]);
         if (error) throw error;
         toast({ title: 'Success', description: 'Event created successfully' });
+        if (sendPushAlert) {
+          broadcastPushNotification({
+            title: `New Event: ${payload.title}`,
+            body: payload.description ? payload.description.slice(0, 110) : 'Check out our newly announced church event.',
+            url: '/events',
+            tag: 'impact-event',
+          }).catch((pushErr) => console.warn('Automatic push broadcast failed:', pushErr));
+        }
       }
 
       setShowModal(false);
@@ -717,6 +775,24 @@ export default function AdminEvents() {
                   </div>
                 )}
               </div>
+
+              <div className="flex items-center gap-3 p-3.5 rounded-xl bg-foreground/5 border border-foreground/10">
+                  <input
+                    type="checkbox"
+                    id="event-push-checkbox"
+                    checked={sendPushAlert}
+                    onChange={(e) => setSendPushAlert(e.target.checked)}
+                    className="w-4 h-4 rounded text-rose-gold accent-rose-gold cursor-pointer"
+                  />
+                  <label htmlFor="event-push-checkbox" className="text-xs text-foreground/80 cursor-pointer flex-1">
+                    <strong className="block text-foreground text-xs">
+                      {editingEvent ? 'Broadcast push notification about this event update' : 'Broadcast push notification to subscribers'}
+                    </strong>
+                    {editingEvent
+                      ? 'Alert all installed PWA devices immediately about the updated event details.'
+                      : 'Alert all installed PWA devices immediately when this event is created.'}
+                  </label>
+                </div>
 
               <button
                 type="submit"

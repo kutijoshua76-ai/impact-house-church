@@ -20,6 +20,22 @@ function isVideo(url: string) {
   return /\.(mp4|webm|mov|ogv)(\?.*)?$/i.test(url);
 }
 
+// Safely parse date-only ISO strings without UTC midnight timezone shifting
+function parseLocalDate(dateStr: string | null): Date | null {
+  if (!dateStr) return null;
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const [, y, m, d] = match;
+    return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+  }
+  return new Date(dateStr);
+}
+
+function formatLocalDate(dateStr: string | null, formatStr: string): string {
+  const parsed = parseLocalDate(dateStr);
+  return parsed ? format(parsed, formatStr) : '';
+}
+
 function EventLightbox({ event, onClose }: { event: Event; onClose: () => void }) {
   // Close on Escape key
   useEffect(() => {
@@ -87,10 +103,10 @@ function EventLightbox({ event, onClose }: { event: Event; onClose: () => void }
             {event.event_date ? (
               <>
                 <p className="text-[10px] uppercase tracking-widest text-primary font-bold">
-                  {format(new Date(event.event_date), 'MMM yyyy')}
+                  {formatLocalDate(event.event_date, 'MMM yyyy')}
                 </p>
                 <p className="text-3xl font-serif font-bold leading-none">
-                  {format(new Date(event.event_date), 'dd')}
+                  {formatLocalDate(event.event_date, 'dd')}
                 </p>
               </>
             ) : (
@@ -134,7 +150,7 @@ function EventLightbox({ event, onClose }: { event: Event; onClose: () => void }
             <div className="flex items-center gap-2.5 bg-primary/10 border border-primary/20 rounded-2xl px-4 py-2.5">
               <Calendar size={16} className="text-primary flex-shrink-0" />
               <span className="text-sm font-semibold text-foreground/80">
-                {event.event_date ? format(new Date(event.event_date), 'EEEE, MMMM do, yyyy') : 'Date to be announced (Anticipated)'}
+                {event.event_date ? formatLocalDate(event.event_date, 'EEEE, MMMM do, yyyy') : 'Date to be announced (Anticipated)'}
               </span>
             </div>
             {event.event_time && (
@@ -271,8 +287,8 @@ export default function Events() {
                     <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl text-midnight font-bold shadow-lg">
                       {event.event_date ? (
                         <>
-                          <p className="text-xs uppercase tracking-widest text-primary">{format(new Date(event.event_date), 'MMM')}</p>
-                          <p className="text-2xl font-serif">{format(new Date(event.event_date), 'dd')}</p>
+                          <p className="text-xs uppercase tracking-widest text-primary">{formatLocalDate(event.event_date, 'MMM')}</p>
+                          <p className="text-2xl font-serif">{formatLocalDate(event.event_date, 'dd')}</p>
                         </>
                       ) : (
                         <>
@@ -292,7 +308,7 @@ export default function Events() {
                     <div className="space-y-3 mb-8">
                       <div className="flex items-center gap-3 text-sm text-foreground/40 font-medium">
                         <Calendar size={16} className="text-primary" />
-                        {event.event_date ? format(new Date(event.event_date), 'EEEE, MMMM do, yyyy') : 'Date to be announced'}
+                        {event.event_date ? formatLocalDate(event.event_date, 'EEEE, MMMM do, yyyy') : 'Date to be announced'}
                       </div>
                       <div className="flex items-center gap-3 text-sm text-foreground/40 font-medium">
                         <Clock size={16} className="text-primary" />

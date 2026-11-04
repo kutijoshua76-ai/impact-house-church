@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "solarized" | "vivid" | "haven";
+type Theme = "dark" | "vivid" | "haven";
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -24,16 +24,19 @@ export function ThemeProvider({
   defaultTheme = "dark",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem("vite-ui-theme") as Theme) || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem("vite-ui-theme");
+    if (saved === "dark" || saved === "vivid" || saved === "haven") {
+      return saved as Theme;
+    }
+    return defaultTheme;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
 
     root.classList.remove("light", "dark", "solarized", "vivid", "haven");
 
-    // "dark" is the default unclassed theme in index.css, but we can also just add the class
     if (theme === "dark") {
       root.classList.add("dark");
     } else {
@@ -43,9 +46,9 @@ export function ThemeProvider({
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem("vite-ui-theme", theme);
-      setTheme(theme);
+    setTheme: (newTheme: Theme) => {
+      localStorage.setItem("vite-ui-theme", newTheme);
+      setTheme(newTheme);
     },
   };
 

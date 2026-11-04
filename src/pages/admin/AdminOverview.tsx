@@ -28,6 +28,7 @@ import { supabase } from '@/lib/supabase';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useToast } from '@/components/ui/use-toast';
+import DOMPurify from 'dompurify';
 
 interface BibleVerse {
   id: string;
@@ -512,7 +513,7 @@ export default function AdminOverview() {
                       .bible-reader-content .wj { color: #f87171; } /* Red letters for words of Jesus */
                       .bible-reader-content .add { font-style: italic; opacity: 0.8; }
                     `}} />
-                    <div dangerouslySetInnerHTML={{ __html: biblePassage.content }} />
+                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(biblePassage.content) }} />
                   </div>
 
                   <div className="pt-16 pb-4 text-center">

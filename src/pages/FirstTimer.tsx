@@ -173,7 +173,7 @@ const FirstTimer = () => {
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       <SEO 
         title="I'm New - First Timers" 
-        canonicalUrl="/first-timers"
+        canonicalUrl="/first-timer"
         description="Welcome to RCCG Impact House! Plan a visit and get connected to our vibrant community."
       />
       <BackgroundWatermark />

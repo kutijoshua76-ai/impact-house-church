@@ -10,6 +10,7 @@ import { Users, BookOpen, Heart, Clock, Youtube, Instagram, Facebook, ChevronDow
 import BorderGlow from "@/components/ui/border-glow";
 import TrueFocus from "@/components/ui/TrueFocus";
 import { SEO } from "@/components/SEO";
+import DailyVerseCard from "@/components/DailyVerseCard";
 
 const Index = () => {
   const [showQuickLinks, setShowQuickLinks] = useState(false);
@@ -208,6 +209,14 @@ const Index = () => {
             </div>
           </div>
         </div>
+      </section>
+
+      
+      {/* Daily Bible Scripture Highlight Section */}
+      <section className="py-12 relative z-10 max-w-7xl mx-auto px-6">
+        <ScrollReveal>
+          <DailyVerseCard />
+        </ScrollReveal>
       </section>
 
       {/* Experience Us Live Section */}

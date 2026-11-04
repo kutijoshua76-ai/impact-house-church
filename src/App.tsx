@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -17,6 +17,7 @@ import CSR from "./pages/CSR.tsx";
 import JoinWorkforce from "./pages/JoinWorkforce.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Sermons from "./pages/Sermons.tsx";
+import DailyVerse from "./pages/DailyVerse.tsx";
 import BackToTop from "./components/BackToTop";
 import ScrollToTop from "./components/ScrollToTop";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -38,6 +39,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import Login from "./pages/Login.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import InstallPrompt from "./components/pwa/InstallPrompt";
+import NotificationPrompt from "./components/pwa/NotificationPrompt";
 
 const queryClient = new QueryClient();
 
@@ -60,11 +62,15 @@ const App = () => (
             <Route path="/give/tithes" element={<Tithes />} />
             <Route path="/give/projects" element={<ProjectFunding />} />
             <Route path="/first-timer" element={<FirstTimer />} />
+            {/* SEO and backward-compatible route alias */}
+            <Route path="/first-timers" element={<Navigate to="/first-timer" replace />} />
             <Route path="/testimony" element={<Testimony />} />
             <Route path="/events" element={<Events />} />
             <Route path="/csr" element={<CSR />} />
             <Route path="/join-workforce" element={<JoinWorkforce />} />
             <Route path="/sermons" element={<Sermons />} />
+            <Route path="/daily-verse" element={<DailyVerse />} />
+            <Route path="/verse" element={<Navigate to="/daily-verse" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -131,6 +137,7 @@ const App = () => (
           </Routes>
           <BackToTop />
           <InstallPrompt />
+          <NotificationPrompt />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

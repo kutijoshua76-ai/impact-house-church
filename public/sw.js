@@ -120,7 +120,7 @@ self.addEventListener('push', (event) => {
   } else {
     data = {
       title: 'RCCG Impact House',
-      body: 'New event or gallery update posted!',
+      body: 'New event, sermon or daily verse update posted!',
     };
   }
 
@@ -172,12 +172,12 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  const rawUrl = event.notification.data?.url || '/events';
+  const rawUrl = event.notification.data?.url || '/';
   const targetUrl = rawUrl.startsWith('http') ? rawUrl : `${self.location.origin}${rawUrl}`;
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      // If external link (e.g. Google Drive folder), open new window directly
+      // If external link (e.g. YouTube stream / Zoom / Google Drive folder)
       if (rawUrl.startsWith('http') && !rawUrl.includes(self.location.hostname)) {
         if (self.clients.openWindow) {
           return self.clients.openWindow(rawUrl);
@@ -204,5 +204,25 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+
+  // Handle local daily verse or test notification triggered from client
+  if (event.data && event.data.type === 'TRIGGER_LOCAL_NOTIFICATION') {
+    const { title, options } = event.data;
+    if (title) {
+      self.registration.showNotification(title, options || {});
+    }
+  }
+});
+
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'daily-bible-verse') {
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'PERIODIC_DAILY_VERSE_CHECK' });
+        });
+      })
+    );
   }
 });
