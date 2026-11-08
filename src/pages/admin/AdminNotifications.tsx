@@ -120,6 +120,7 @@ export default function AdminNotifications() {
 
   // Stats & History
   const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
+  const [refreshingCount, setRefreshingCount] = useState(false);
   const [history, setHistory] = useState<PushHistoryItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [tableMissingWarning, setTableMissingWarning] = useState(false);
@@ -183,6 +184,13 @@ export default function AdminNotifications() {
           setActivities(prev => [newActivity, ...prev]);
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'push_subscriptions' },
+        () => {
+          fetchSubscriberCount(false);
+        }
+      )
       .subscribe();
 
     return () => {
@@ -190,7 +198,8 @@ export default function AdminNotifications() {
     };
   }, []);
 
-  const fetchSubscriberCount = async () => {
+  const fetchSubscriberCount = async (showToast = false) => {
+    if (showToast) setRefreshingCount(true);
     try {
       const { count, error } = await supabase
         .from('push_subscriptions')
@@ -200,13 +209,26 @@ export default function AdminNotifications() {
         if (error.code === 'PGRST205' || error.message.includes('push_subscriptions')) {
           setTableMissingWarning(true);
         }
+        if (showToast) {
+          toast.error('Could not refresh subscriber count: ' + error.message);
+        }
         return;
       }
 
       setTableMissingWarning(false);
       setSubscriberCount(count || 0);
+      if (showToast) {
+        toast.success(`Active subscribers refreshed: ${count || 0} device(s) registered`);
+      }
     } catch (err) {
       console.warn('Could not fetch subscriber count:', err);
+      if (showToast) {
+        toast.error('Network error checking subscriber count.');
+      }
+    } finally {
+      if (showToast) {
+        setTimeout(() => setRefreshingCount(false), 500);
+      }
     }
   };
 
@@ -478,11 +500,12 @@ export default function AdminNotifications() {
               Open SQL Editor <ExternalLink size={13} />
             </a>
             <button
-              onClick={fetchSubscriberCount}
+              onClick={() => fetchSubscriberCount(true)}
+              disabled={refreshingCount}
               title="Re-check database"
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-amber-200 border border-white/10 transition-colors"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-amber-200 border border-white/10 transition-colors disabled:opacity-50"
             >
-              <RefreshCw size={14} />
+              <RefreshCw size={14} className={refreshingCount ? 'animate-spin' : ''} />
             </button>
           </div>
         </div>
@@ -506,10 +529,12 @@ export default function AdminNotifications() {
                 <span className="text-xs text-foreground/40 font-medium">registered PWA endpoints</span>
               </div>
               <button
-                onClick={fetchSubscriberCount}
-                className="mt-3 text-[11px] font-bold text-rose-gold hover:underline flex items-center gap-1"
+                onClick={() => fetchSubscriberCount(true)}
+                disabled={refreshingCount}
+                className="mt-3 text-[11px] font-bold text-rose-gold hover:underline flex items-center gap-1 disabled:opacity-50 transition-all cursor-pointer"
               >
-                <RefreshCw size={11} /> Refresh count
+                <RefreshCw size={11} className={refreshingCount ? 'animate-spin text-rose-gold' : ''} />
+                {refreshingCount ? 'Refreshing...' : 'Refresh count'}
               </button>
             </div>
 
