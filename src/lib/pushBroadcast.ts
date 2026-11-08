@@ -54,11 +54,20 @@ export async function broadcastPushNotification(options: SendPushOptions): Promi
       };
     }
 
-    const errData = await res.json().catch(() => null);
+    let errMessage = `Broadcast error (${res.status})`;
+    try {
+      const errText = await res.text();
+      const errJson = JSON.parse(errText);
+      if (errJson?.error) errMessage = errJson.error;
+      else if (errText) errMessage = errText.slice(0, 120);
+    } catch {
+      // Ignore parse failure
+    }
+
     if (res.status !== 404) {
       return {
         success: false,
-        error: errData?.error || `Broadcast error (${res.status})`,
+        error: errMessage,
       };
     }
   } catch (primaryErr) {
