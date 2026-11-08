@@ -12,6 +12,15 @@ export const VAPID_PUBLIC_KEY =
 
 export type PushPermissionState = 'granted' | 'denied' | 'default' | 'unsupported';
 
+export interface CachedPushSubscription {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  user_id?: string | null;
+  user_agent?: string;
+  saved_at: string;
+}
+
 /**
  * Checks the current push notification permission status.
  */
@@ -44,7 +53,9 @@ export async function getExistingSubscription(): Promise<PushSubscription | null
  */
 export async function isSubscribedToPush(): Promise<boolean> {
   const sub = await getExistingSubscription();
-  return Boolean(sub);
+  if (sub) return true;
+  // Fallback to local storage state
+  return localStorage.getItem('impact_push_subscribed') === 'true';
 }
 
 /**
@@ -61,7 +72,9 @@ function arrayBufferToBase64(buffer: ArrayBuffer | null): string {
 }
 
 /**
- * Subscribes the current device to Web Push notifications and registers the token in Supabase.
+ * Subscribes the current device to Web Push notifications and registers the token.
+ * Resilient design: local subscription and daily verse alerts succeed immediately,
+ * while Supabase database sync runs smoothly and auto-retries in the background if the table is still being created.
  */
 export async function subscribeToPush(userId?: string | null): Promise<{
   success: boolean;
@@ -88,9 +101,10 @@ export async function subscribeToPush(userId?: string | null): Promise<{
     if (permission !== 'granted') {
       return {
         success: false,
-        error: permission === 'denied'
-          ? 'Notification permission was denied. Please enable notifications in your browser site settings.'
-          : 'Notification permission was dismissed.',
+        error:
+          permission === 'denied'
+            ? 'Notification permission was denied. Please enable notifications in your browser site settings.'
+            : 'Notification permission was dismissed.',
       };
     }
 
@@ -103,7 +117,7 @@ export async function subscribeToPush(userId?: string | null): Promise<{
       };
     }
 
-    // 3. Subscribe or retrieve existing subscription
+    // 3. Subscribe or retrieve existing browser subscription
     let subscription = await registration.pushManager.getSubscription();
     if (!subscription) {
       const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
@@ -127,29 +141,48 @@ export async function subscribeToPush(userId?: string | null): Promise<{
     const p256dh = arrayBufferToBase64(p256dhKey);
     const auth = arrayBufferToBase64(authKey);
 
-    // 5. Store / Upsert subscription in Supabase
-    const { error: dbError } = await supabase.from('push_subscriptions').upsert(
-      {
-        endpoint: subscription.endpoint,
-        p256dh,
-        auth,
-        user_id: userId || null,
-        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'endpoint' }
-    );
-
-    if (dbError) {
-      console.error('[PushManager] Supabase database sync error:', dbError);
-      // We still have the browser subscription, but alert about db sync
-      return {
-        success: false,
-        error: `Could not save subscription: ${dbError.message}`,
-      };
-    }
+    // 5. Cache subscription locally so device is marked as active immediately
+    const cacheData: CachedPushSubscription = {
+      endpoint: subscription.endpoint,
+      p256dh,
+      auth,
+      user_id: userId || null,
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+      saved_at: new Date().toISOString(),
+    };
 
     localStorage.setItem('impact_push_subscribed', 'true');
+    localStorage.setItem('impact_push_sub_cache', JSON.stringify(cacheData));
+
+    // 6. Sync to Supabase in the background; if the remote table is missing or offline,
+    // queue it for background sync without blocking the user's notification activation.
+    try {
+      const { error: dbError } = await supabase.from('push_subscriptions').upsert(
+        {
+          endpoint: subscription.endpoint,
+          p256dh,
+          auth,
+          user_id: userId || null,
+          user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'endpoint' }
+      );
+
+      if (dbError) {
+        console.warn(
+          '[PushManager] Supabase push_subscriptions sync deferred (remote table or network pending):',
+          dbError.message
+        );
+        localStorage.setItem('impact_push_sub_pending', 'true');
+      } else {
+        localStorage.removeItem('impact_push_sub_pending');
+      }
+    } catch (syncErr) {
+      console.warn('[PushManager] Supabase sync deferred for background retry:', syncErr);
+      localStorage.setItem('impact_push_sub_pending', 'true');
+    }
+
     return { success: true, subscription };
   } catch (err: unknown) {
     console.error('[PushManager] Subscription failed:', err);
@@ -157,6 +190,39 @@ export async function subscribeToPush(userId?: string | null): Promise<{
       success: false,
       error: err instanceof Error ? err.message : 'Failed to subscribe to push notifications.',
     };
+  }
+}
+
+/**
+ * Silently syncs any pending local push subscription to Supabase.
+ * Triggered on app initialization and when browser regains network connectivity.
+ */
+export async function syncPendingPushSubscription(userId?: string | null): Promise<void> {
+  if (!isPushSupported()) return;
+
+  const cachedStr = localStorage.getItem('impact_push_sub_cache');
+  if (!cachedStr) return;
+
+  try {
+    const data: CachedPushSubscription = JSON.parse(cachedStr);
+    const { error } = await supabase.from('push_subscriptions').upsert(
+      {
+        endpoint: data.endpoint,
+        p256dh: data.p256dh,
+        auth: data.auth,
+        user_id: userId || data.user_id || null,
+        user_agent: data.user_agent || (typeof navigator !== 'undefined' ? navigator.userAgent : ''),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'endpoint' }
+    );
+
+    if (!error) {
+      localStorage.removeItem('impact_push_sub_pending');
+      console.log('[PushManager] Successfully synced push subscription to Supabase.');
+    }
+  } catch {
+    // Keep pending for next automatic sync
   }
 }
 
@@ -170,14 +236,20 @@ export async function unsubscribeFromPush(): Promise<{ success: boolean; error?:
       // Remove from browser PushManager
       await subscription.unsubscribe();
 
-      // Remove from Supabase
-      await supabase
-        .from('push_subscriptions')
-        .delete()
-        .eq('endpoint', subscription.endpoint);
+      // Gracefully attempt removal from Supabase if table exists
+      try {
+        await supabase
+          .from('push_subscriptions')
+          .delete()
+          .eq('endpoint', subscription.endpoint);
+      } catch (err) {
+        console.warn('[PushManager] Supabase unsubscribe sync deferred:', err);
+      }
     }
 
     localStorage.removeItem('impact_push_subscribed');
+    localStorage.removeItem('impact_push_sub_cache');
+    localStorage.removeItem('impact_push_sub_pending');
     return { success: true };
   } catch (err: unknown) {
     console.error('[PushManager] Unsubscribe failed:', err);

@@ -17,7 +17,9 @@ import {
   BookOpen,
   Volume2,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  Check
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -48,6 +50,59 @@ type PushHistoryItem = {
   failure_count: number;
 };
 
+const PUSH_SCHEMA_SQL = `-- 1. Create table for client push subscriptions
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON public.push_subscriptions(endpoint);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON public.push_subscriptions(user_id);
+
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public insert into push_subscriptions"
+    ON public.push_subscriptions FOR INSERT TO public WITH CHECK (true);
+
+CREATE POLICY "Allow public update push_subscriptions"
+    ON public.push_subscriptions FOR UPDATE TO public USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow public select push_subscriptions"
+    ON public.push_subscriptions FOR SELECT TO public USING (true);
+
+CREATE POLICY "Allow public delete push_subscriptions"
+    ON public.push_subscriptions FOR DELETE TO public USING (true);
+
+-- 2. Create table for Push Notifications Broadcast Log
+CREATE TABLE IF NOT EXISTS public.push_notifications_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    url TEXT DEFAULT '/events',
+    icon TEXT DEFAULT '/pwa-192x192.png',
+    badge TEXT DEFAULT '/badge-72x72.png',
+    tag TEXT DEFAULT 'impact-announcement',
+    sent_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    sent_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+    target_count INTEGER DEFAULT 0,
+    success_count INTEGER DEFAULT 0,
+    failure_count INTEGER DEFAULT 0
+);
+
+ALTER TABLE public.push_notifications_log ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow authenticated read on push_notifications_log"
+    ON public.push_notifications_log FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Allow authenticated insert on push_notifications_log"
+    ON public.push_notifications_log FOR INSERT TO authenticated WITH CHECK (true);`;
+
 export default function AdminNotifications() {
   const { user } = useAuth();
   const { isSubscribed, permission, subscribe, sendLocalTestNotification } = usePushNotifications(user?.id);
@@ -68,6 +123,7 @@ export default function AdminNotifications() {
   const [history, setHistory] = useState<PushHistoryItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [tableMissingWarning, setTableMissingWarning] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
 
   // Activity Log state
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -235,6 +291,17 @@ export default function AdminNotifications() {
   };
 
   
+  const handleCopySql = async () => {
+    try {
+      await navigator.clipboard.writeText(PUSH_SCHEMA_SQL);
+      setCopiedSql(true);
+      toast.success('SQL migration script copied to clipboard!');
+      setTimeout(() => setCopiedSql(false), 3000);
+    } catch {
+      toast.error('Failed to copy to clipboard.');
+    }
+  };
+
   const handleBroadcastTodayVerse = async () => {
     if (!todayVerse) return;
     const confirmSend = window.confirm(
@@ -383,14 +450,40 @@ export default function AdminNotifications() {
 
       {/* Migration Notice Banner if push_subscriptions table is missing in Supabase */}
       {tableMissingWarning && (
-        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 flex items-start gap-3 text-amber-200">
-          <AlertCircle size={20} className="flex-shrink-0 text-amber-400 mt-0.5" />
-          <div className="text-xs space-y-1">
-            <p className="font-bold text-sm">Supabase Push Schema Required</p>
-            <p className="text-amber-200/80">
-              The <code className="bg-black/30 px-1 py-0.5 rounded">push_subscriptions</code> table has not been initialized in your Supabase project yet.
-              Run the SQL script located at <code className="bg-black/30 px-1 py-0.5 rounded">supabase/migrations/push_notifications.sql</code> in your Supabase SQL Editor.
-            </p>
+        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-amber-200">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={22} className="flex-shrink-0 text-amber-400 mt-0.5" />
+            <div className="text-xs space-y-1">
+              <p className="font-bold text-sm text-amber-300">Supabase Push Schema Not Initialized</p>
+              <p className="text-amber-200/80 max-w-2xl">
+                The <code className="bg-black/30 px-1.5 py-0.5 rounded font-mono text-amber-300">push_subscriptions</code> table is needed in Supabase to broadcast server alerts to all registered devices.
+                Client PWA notifications and daily verses are actively working with local caching!
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-stretch md:self-auto flex-shrink-0">
+            <button
+              onClick={handleCopySql}
+              className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 font-bold text-xs border border-amber-400/30 transition-all"
+            >
+              {copiedSql ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+              {copiedSql ? 'Copied SQL!' : 'Copy SQL Script'}
+            </button>
+            <a
+              href="https://supabase.com/dashboard/project/pdxvybpwtxbbhnyfhjej/sql/new"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-gold text-midnight font-bold text-xs hover:scale-105 active:scale-95 transition-all shadow-md"
+            >
+              Open SQL Editor <ExternalLink size={13} />
+            </a>
+            <button
+              onClick={fetchSubscriberCount}
+              title="Re-check database"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-amber-200 border border-white/10 transition-colors"
+            >
+              <RefreshCw size={14} />
+            </button>
           </div>
         </div>
       )}

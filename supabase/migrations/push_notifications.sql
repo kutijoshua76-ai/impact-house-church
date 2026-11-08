@@ -35,18 +35,18 @@ CREATE POLICY "Allow public update push_subscriptions"
     USING (true)
     WITH CHECK (true);
 
+-- Allow public select so PostgREST upsert (return=representation) succeeds for anonymous subscribers
+CREATE POLICY "Allow public select push_subscriptions"
+    ON public.push_subscriptions
+    FOR SELECT
+    TO public
+    USING (true);
+
 -- Allow subscribers to delete/unsubscribe by endpoint
 CREATE POLICY "Allow public delete push_subscriptions"
     ON public.push_subscriptions
     FOR DELETE
     TO public
-    USING (true);
-
--- Allow authenticated admins to view all subscribers
-CREATE POLICY "Allow authenticated users to read push_subscriptions"
-    ON public.push_subscriptions
-    FOR SELECT
-    TO authenticated
     USING (true);
 
 -- 2. Create table for Push Notifications Broadcast Log
@@ -80,4 +80,3 @@ CREATE POLICY "Allow authenticated insert on push_notifications_log"
     FOR INSERT
     TO authenticated
     WITH CHECK (true);
-

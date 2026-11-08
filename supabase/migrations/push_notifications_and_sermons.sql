@@ -39,10 +39,11 @@ CREATE POLICY "Allow public delete push_subscriptions"
     TO public
     USING (true);
 
-CREATE POLICY "Allow authenticated users to read push_subscriptions"
+-- Allow public select so PostgREST upsert (return=representation) succeeds for anonymous subscribers
+CREATE POLICY "Allow public select push_subscriptions"
     ON public.push_subscriptions
     FOR SELECT
-    TO authenticated
+    TO public
     USING (true);
 
 -- ==============================================================================

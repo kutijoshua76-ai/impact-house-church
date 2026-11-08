@@ -6,6 +6,7 @@ import {
   subscribeToPush,
   unsubscribeFromPush,
   listenForForegroundPush,
+  syncPendingPushSubscription,
   PushPermissionState,
 } from '@/lib/pushManager';
 import {
@@ -44,14 +45,21 @@ export function usePushNotifications(userId?: string | null) {
         setDailyVerseEnabledState(isDailyVerseNotificationEnabled());
         setLoading(false);
 
-        // If user is already subscribed and granted, perform daily verse check
+        // If user is already subscribed and granted, sync to Supabase and perform daily verse check
         if (subscribed && Notification.permission === 'granted') {
+          syncPendingPushSubscription(userId).catch(() => {});
           checkAndTriggerDailyVerseNotification(false).catch(() => {});
         }
       }
     }
 
     checkStatus();
+
+    // Auto-sync pending push subscriptions whenever network recovers
+    const handleOnline = () => {
+      syncPendingPushSubscription(userId).catch(() => {});
+    };
+    window.addEventListener('online', handleOnline);
 
     // Setup foreground push listener: pops an in-app toast notification
     const unsubscribeForeground = listenForForegroundPush((payload) => {
@@ -71,9 +79,10 @@ export function usePushNotifications(userId?: string | null) {
 
     return () => {
       mounted = false;
+      window.removeEventListener('online', handleOnline);
       unsubscribeForeground();
     };
-  }, []);
+  }, [userId]);
 
   const handleSubscribe = useCallback(async () => {
     setLoading(true);
