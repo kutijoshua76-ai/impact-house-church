@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:chrome": "cmd /c start chrome http://localhost:8080 && vite",
-    "build": "vite build",
+    "build:api": "esbuild api-src/broadcast-push.js --bundle --platform=node --format=esm --outfile=api/broadcast-push.js",
+    "build": "npm run build:api && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
