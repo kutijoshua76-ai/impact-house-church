@@ -44,24 +44,26 @@ serve(async (req) => {
     // Create Supabase Admin client with service_role to access push_subscriptions
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify sender Authorization
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    // Verify sender Authorization (Admin User JWT OR Supabase Service Role / Automated Cron)
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.replace('Bearer ', '').trim();
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
+    const isServiceRole = Boolean(supabaseServiceKey && token === supabaseServiceKey);
+    if (!isServiceRole) {
+      if (!token) {
+        return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized sender' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized sender' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     const body: PushPayload = await req.json();

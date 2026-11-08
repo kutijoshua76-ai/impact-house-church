@@ -52,6 +52,26 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       }
     });
 
+    // Register periodic background sync for daily Bible verse if supported (Chromium PWA)
+    if ('periodicSync' in registration) {
+      try {
+        const periodicSync = (registration as unknown as {
+          periodicSync: {
+            getTags: () => Promise<string[]>;
+            register: (tag: string, options: { minInterval: number }) => Promise<void>;
+          };
+        }).periodicSync;
+        const tags = await periodicSync.getTags();
+        if (!tags.includes('daily-bible-verse')) {
+          await periodicSync.register('daily-bible-verse', {
+            minInterval: 12 * 60 * 60 * 1000, // Check every 12 hours
+          });
+        }
+      } catch {
+        // Periodic sync requires PWA installation or browser permission
+      }
+    }
+
     console.log('[PWA] Service Worker registered with scope:', registration.scope);
     return registration;
   } catch (err) {

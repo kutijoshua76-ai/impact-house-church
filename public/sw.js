@@ -219,9 +219,25 @@ self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'daily-bible-verse') {
     event.waitUntil(
       self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-        clients.forEach((client) => {
-          client.postMessage({ type: 'PERIODIC_DAILY_VERSE_CHECK' });
-        });
+        if (clients && clients.length > 0) {
+          clients.forEach((client) => {
+            client.postMessage({ type: 'PERIODIC_DAILY_VERSE_CHECK' });
+          });
+        } else {
+          // If window is closed, show the daily word reminder notification directly
+          return self.registration.showNotification("📖 Today's Scripture & Prayer", {
+            body: "Start your morning in God's presence. Tap to read today's devotional word and scripture reflection.",
+            icon: '/pwa-192x192.png',
+            badge: '/badge-72x72.png',
+            tag: 'daily-bible-verse-reminder',
+            data: { url: '/daily-verse', type: 'daily-verse' },
+            vibrate: [120, 60, 120],
+            actions: [
+              { action: 'open', title: 'Read Word' },
+              { action: 'dismiss', title: 'Close' },
+            ],
+          });
+        }
       })
     );
   }
