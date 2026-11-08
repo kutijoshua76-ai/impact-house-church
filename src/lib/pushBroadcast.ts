@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 
-const PUSH_FN = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-push-notification`;
+const PRIMARY_PUSH_URL = '/api/broadcast-push';
+const FALLBACK_EDGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-push-notification`;
 
 export interface SendPushOptions {
   title: string;
@@ -22,28 +23,61 @@ export interface SendPushResult {
 }
 
 /**
- * Invokes the Supabase Edge Function to broadcast a push notification to PWA subscribers.
+ * Broadcasts a real-time Web Push notification to all active devices.
+ * Uses the integrated Vercel serverless /api/broadcast-push route,
+ * with graceful fallback to Supabase Edge Function.
  */
 export async function broadcastPushNotification(options: SendPushOptions): Promise<SendPushResult> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token || '';
+
+  // 1. Primary: High-speed Vercel serverless API route
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session?.access_token) {
-      return { success: false, error: 'You must be logged in as an administrator to send push notifications.' };
-    }
-
-    const response = await fetch(PUSH_FN, {
+    const res = await fetch(PRIMARY_PUSH_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${session.access_token}`,
+        Authorization: token ? `Bearer ${token}` : '',
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+      },
+      body: JSON.stringify(options),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        success: true,
+        target_count: data.target_count,
+        success_count: data.success_count,
+        failure_count: data.failure_count,
+        pruned_count: data.pruned_count,
+      };
+    }
+
+    const errData = await res.json().catch(() => null);
+    if (res.status !== 404) {
+      return {
+        success: false,
+        error: errData?.error || `Broadcast error (${res.status})`,
+      };
+    }
+  } catch (primaryErr) {
+    console.warn('[PushBroadcast] Primary /api/broadcast-push error, falling back:', primaryErr);
+  }
+
+  // 2. Fallback: Supabase Edge Function
+  try {
+    const response = await fetch(FALLBACK_EDGE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+        Authorization: token ? `Bearer ${token}` : '',
       },
       body: JSON.stringify(options),
     });
 
     const data = await response.json();
-
     if (!response.ok) {
       return {
         success: false,
@@ -62,8 +96,10 @@ export async function broadcastPushNotification(options: SendPushOptions): Promi
     console.error('[PushBroadcast] Failed to send push:', err);
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Network error sending notification.',
+      error:
+        err instanceof Error
+          ? err.message
+          : 'Unable to reach push delivery service.',
     };
   }
 }
-
