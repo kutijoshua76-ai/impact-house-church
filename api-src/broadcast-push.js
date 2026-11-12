@@ -4,11 +4,17 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://pdxvybpwtxbbhnyfhjej.supabase.co';
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkeHZ5YnB3dHhiYmhueWZoamVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NjQ5MzYsImV4cCI6MjA5MjU0MDkzNn0.u-dcL--wTorVZtObhtM-u7PdBDyzJHnyUiZdSshjNWs';
 
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY || 'BKLNXeDdATHKhe1ZPaqlONQqB1fwrsksz7sJIrQfKdmKA1AwNQZ2acmokKFU671KHI5Kq25oN-kMrePC9TspOWI';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'LhkRuMR6G8D1eTFp5aM55MLmp7GPDzgoYagh7vwFBfA';
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@rccgimpacthouse.org';
 
-webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  } catch (err) {
+    console.warn('[Broadcast API] Failed to initialize VAPID details:', err?.message);
+  }
+}
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const CURATED_DAILY_VERSES = [
@@ -96,6 +102,14 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+    console.error('[Broadcast API] Missing VAPID credentials in environment variables.');
+    return res.status(500).json({
+      success: false,
+      error: 'VAPID credentials not configured. Please set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY in hosting environment variables.',
+    });
   }
 
   try {

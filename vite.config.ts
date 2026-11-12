@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 // This ensures push notifications work on Vercel even without VITE_VAPID_PUBLIC_KEY set in dashboard.
 const VAPID_PUBLIC_KEY =
   process.env.VITE_VAPID_PUBLIC_KEY ||
-  "BKLNXeDdATHKhe1ZPaqlONQqB1fwrsksz7sJIrQfKdmKA1AwNQZ2acmokKFU671KHI5Kq25oN-kMrePC9TspOWI";
+  "BDjZxChL4wXGsIKeoIJMHlAdJIbhOBtp323D3FbRLh0_IIZKigcV8vrFqZls3jyVyumMz0oqiH-sLTPd0EYD6Lo";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({

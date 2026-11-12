@@ -5,7 +5,7 @@ export { isPushSupported };
 
 // Default public VAPID key (safe for client-side bundle; public keys are meant to be public)
 const DEFAULT_VAPID_PUBLIC_KEY =
-  'BKLNXeDdATHKhe1ZPaqlONQqB1fwrsksz7sJIrQfKdmKA1AwNQZ2acmokKFU671KHI5Kq25oN-kMrePC9TspOWI';
+  'BDjZxChL4wXGsIKeoIJMHlAdJIbhOBtp323D3FbRLh0_IIZKigcV8vrFqZls3jyVyumMz0oqiH-sLTPd0EYD6Lo';
 
 export const VAPID_PUBLIC_KEY =
   import.meta.env.VITE_VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC_KEY;

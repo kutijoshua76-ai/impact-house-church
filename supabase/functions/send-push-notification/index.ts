@@ -30,12 +30,16 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY') || 'BKLNXeDdATHKhe1ZPaqlONQqB1fwrsksz7sJIrQfKdmKA1AwNQZ2acmokKFU671KHI5Kq25oN-kMrePC9TspOWI';
-    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY') || 'LhkRuMR6G8D1eTFp5aM55MLmp7GPDzgoYagh7vwFBfA';
+    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY') || '';
+    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY') || '';
     const vapidSubject = Deno.env.get('VAPID_SUBJECT') || 'mailto:admin@rccgimpacthouse.org';
 
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase environment variables are missing');
+    }
+
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      throw new Error('VAPID credentials are not configured in edge function secrets');
     }
 
     // Configure Web Push VAPID credentials
