@@ -213,6 +213,12 @@ export default async function handler(req, res) {
           await webpush.sendNotification(pushSubscription, notificationPayload, {
             TTL: 86400, // 24 hours
             urgency: 'high',
+            headers: {
+              'Urgency': 'high',
+              'Topic': 'impact-broadcast',
+              'apns-priority': '10',
+              'apns-push-type': 'alert',
+            },
           });
           successCount++;
         } catch (err) {

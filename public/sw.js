@@ -126,39 +126,49 @@ self.addEventListener('push', (event) => {
 
   const title = data.title || 'RCCG Impact House';
   const targetUrl = data.url || data.link || '/events';
+  const origin = self.location.origin;
+
+  const iconUrl = data.icon ? (data.icon.startsWith('http') ? data.icon : `${origin}${data.icon}`) : `${origin}/pwa-192x192.png`;
+  const badgeUrl = data.badge ? (data.badge.startsWith('http') ? data.badge : `${origin}${data.badge}`) : `${origin}/badge-72x72.png`;
+  const imageUrl = data.image ? (data.image.startsWith('http') ? data.image : `${origin}${data.image}`) : undefined;
 
   const options = {
     body: data.body || 'Tap to view latest updates and moments.',
-    icon: data.icon || '/pwa-192x192.png',
-    badge: data.badge || '/badge-72x72.png',
-    image: data.image || undefined,
+    icon: iconUrl,
+    badge: badgeUrl,
+    image: imageUrl,
     data: {
       url: targetUrl,
       timestamp: Date.now(),
       type: data.type || 'announcement',
     },
-    vibrate: [150, 60, 150, 60, 200],
-    tag: data.tag || `impact-house-${Date.now()}`,
+    vibrate: [250, 100, 250, 100, 250],
+    tag: data.tag || `impact-${Date.now()}`,
     renotify: true,
-    requireInteraction: true,
-    actions: [
-      { action: 'open', title: 'View Update' },
-      { action: 'dismiss', title: 'Close' },
-    ],
   };
 
   event.waitUntil(
-    self.registration.showNotification(title, options).then(() => {
-      // Broadcast to any active open browser tabs
-      return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-        clients.forEach((client) => {
-          client.postMessage({
-            type: 'PUSH_NOTIFICATION_RECEIVED',
-            payload: { title, ...options },
+    self.registration.showNotification(title, options)
+      .catch((err) => {
+        console.warn('[SW Push] Primary showNotification failed, trying safe fallback:', err);
+        return self.registration.showNotification(title, {
+          body: data.body || 'New announcement available.',
+          icon: `${origin}/pwa-192x192.png`,
+          data: { url: targetUrl },
+          tag: `impact-${Date.now()}`,
+        });
+      })
+      .then(() => {
+        // Broadcast to any active open browser tabs
+        return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: 'PUSH_NOTIFICATION_RECEIVED',
+              payload: { title, ...options },
+            });
           });
         });
-      });
-    })
+      })
   );
 });
 

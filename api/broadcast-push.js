@@ -28663,7 +28663,13 @@ async function handler(req, res) {
           await sendNotification(pushSubscription, notificationPayload, {
             TTL: 86400,
             // 24 hours
-            urgency: "high"
+            urgency: "high",
+            headers: {
+              "Urgency": "high",
+              "Topic": "impact-broadcast",
+              "apns-priority": "10",
+              "apns-push-type": "alert"
+            }
           });
           successCount++;
         } catch (err) {

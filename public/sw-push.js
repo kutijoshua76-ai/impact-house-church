@@ -17,41 +17,52 @@ self.addEventListener('push', (event) => {
   }
 
   const title = payload.title || 'RCCG Impact House';
+  const origin = self.location.origin;
+  const iconUrl = payload.icon ? (payload.icon.startsWith('http') ? payload.icon : `${origin}${payload.icon}`) : `${origin}/pwa-192x192.png`;
+  const badgeUrl = payload.badge ? (payload.badge.startsWith('http') ? payload.badge : `${origin}${payload.badge}`) : `${origin}/badge-72x72.png`;
+  const imageUrl = payload.image ? (payload.image.startsWith('http') ? payload.image : `${origin}${payload.image}`) : undefined;
+
   const options = {
     body: payload.body || 'New announcement or event added.',
-    icon: payload.icon || '/pwa-192x192.png',
-    badge: payload.badge || '/badge-72x72.png',
-    image: payload.image || undefined,
+    icon: iconUrl,
+    badge: badgeUrl,
+    image: imageUrl,
     data: {
       url: payload.url || payload.link || '/events',
       timestamp: Date.now(),
       id: payload.id || undefined,
       type: payload.type || 'general',
     },
-    vibrate: [100, 50, 100, 50, 150],
-    tag: payload.tag || 'impact-house-update',
+    vibrate: [250, 100, 250, 100, 250],
+    tag: payload.tag || `impact-${Date.now()}`,
     renotify: true,
-    actions: payload.actions || [
-      { action: 'open', title: 'Open App' },
-      { action: 'dismiss', title: 'Dismiss' },
-    ],
   };
 
   event.waitUntil(
-    self.registration.showNotification(title, options).then(() => {
-      // Also broadcast to any active open client windows
-      return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-        clients.forEach((client) => {
-          client.postMessage({
-            type: 'PUSH_NOTIFICATION_RECEIVED',
-            payload: {
-              title,
-              ...options,
-            },
+    self.registration.showNotification(title, options)
+      .catch((err) => {
+        console.warn('[SW Push] Primary showNotification failed, using fallback:', err);
+        return self.registration.showNotification(title, {
+          body: payload.body || 'New update available!',
+          icon: `${origin}/pwa-192x192.png`,
+          data: { url: payload.url || '/events' },
+          tag: `impact-${Date.now()}`,
+        });
+      })
+      .then(() => {
+        // Also broadcast to any active open client windows
+        return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: 'PUSH_NOTIFICATION_RECEIVED',
+              payload: {
+                title,
+                ...options,
+              },
+            });
           });
         });
-      });
-    })
+      })
   );
 });
 
