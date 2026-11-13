@@ -47,6 +47,7 @@ export function usePushNotifications(userId?: string | null) {
 
         // If user is already subscribed and granted, sync to Supabase and perform daily verse check
         if (subscribed && Notification.permission === 'granted') {
+          subscribeToPush(userId).catch(() => {});
           syncPendingPushSubscription(userId).catch(() => {});
           checkAndTriggerDailyVerseNotification(false).catch(() => {});
         }

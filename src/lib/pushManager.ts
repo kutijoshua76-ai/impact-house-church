@@ -119,8 +119,23 @@ export async function subscribeToPush(userId?: string | null): Promise<{
 
     // 3. Subscribe or retrieve existing browser subscription
     let subscription = await registration.pushManager.getSubscription();
+    const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+
+    // If an existing subscription was created with an old or different VAPID key, renew it
+    if (subscription && subscription.options?.applicationServerKey) {
+      const currentKeyBytes = new Uint8Array(subscription.options.applicationServerKey);
+      const isMatchingKey =
+        currentKeyBytes.length === convertedVapidKey.length &&
+        currentKeyBytes.every((val, i) => val === convertedVapidKey[i]);
+
+      if (!isMatchingKey) {
+        console.log('[PushManager] Renewing subscription with updated VAPID key...');
+        await subscription.unsubscribe().catch(() => {});
+        subscription = null;
+      }
+    }
+
     if (!subscription) {
-      const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: convertedVapidKey,

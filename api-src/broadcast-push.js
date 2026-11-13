@@ -218,7 +218,7 @@ export default async function handler(req, res) {
         } catch (err) {
           failureCount++;
           console.warn('[Broadcast API] Delivery failed for endpoint:', sub.endpoint.slice(0, 40), err?.statusCode || err?.message);
-          if (err && (err.statusCode === 410 || err.statusCode === 404)) {
+          if (err && (err.statusCode === 410 || err.statusCode === 404 || err.statusCode === 403 || err.statusCode === 400)) {
             expiredEndpoints.push(sub.endpoint);
           }
         }
