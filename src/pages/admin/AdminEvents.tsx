@@ -169,7 +169,7 @@ export default function AdminEvents() {
     image_url: '',
   });
   const [submitting, setSubmitting] = useState(false);
-  const [sendPushAlert, setSendPushAlert] = useState(false);
+  const [sendPushAlert, setSendPushAlert] = useState(true);
 
   // Media upload state
   const [mediaMode, setMediaMode] = useState<MediaInputMode>('upload');
@@ -222,7 +222,8 @@ export default function AdminEvents() {
           ? event.description.slice(0, 110) 
           : `Join us on ${formattedDate} at ${event.location || 'RCCG Impact House'} for ${event.title}.`,
         url: '/events',
-        tag: `impact-event-${event.id}`,
+        image: event.image_url && !isVideo(event.image_url) ? event.image_url : undefined,
+        tag: `impact-event-${event.id}-${Date.now()}`,
       });
 
       if (res.success) {
@@ -250,6 +251,7 @@ export default function AdminEvents() {
     resetMediaState();
     if (event) {
       setEditingEvent(event);
+      setSendPushAlert(false);
       setForm({
         title: event.title,
         description: event.description || '',
@@ -264,6 +266,7 @@ export default function AdminEvents() {
       }
     } else {
       setEditingEvent(null);
+      setSendPushAlert(true);
       setForm({ title: '', description: '', event_date: '', event_time: '', location: '', image_url: '' });
     }
     setShowModal(true);
@@ -350,24 +353,58 @@ export default function AdminEvents() {
         if (error) throw error;
         toast({ title: 'Success', description: 'Event updated successfully' });
         if (sendPushAlert) {
-          broadcastPushNotification({
-            title: `📅 Event Update: ${payload.title}`,
-            body: payload.description ? payload.description.slice(0, 110) : `Updated event details for ${payload.title}. Tap to view.`,
-            url: '/events',
-            tag: `impact-event-${editingEvent.id}`,
-          }).catch((pushErr) => console.warn('Automatic push broadcast failed:', pushErr));
+          try {
+            const pushRes = await broadcastPushNotification({
+              title: `📅 Event Update: ${payload.title}`,
+              body: payload.description
+                ? payload.description.slice(0, 110)
+                : `Updated details for ${payload.title}. Tap to view date & location.`,
+              url: '/events',
+              image: payload.image_url && !isVideo(payload.image_url) ? payload.image_url : undefined,
+              tag: `impact-event-${editingEvent.id}-${Date.now()}`,
+            });
+            if (pushRes.success) {
+              toast({
+                title: '🔔 Push Alert Sent',
+                description: `Delivered to ${pushRes.success_count ?? 0} active subscriber(s).`,
+              });
+            }
+          } catch (pushErr) {
+            console.warn('Automatic push broadcast failed:', pushErr);
+          }
         }
       } else {
-        const { error } = await supabase.from('events').insert([payload]);
+        const { data: insertedData, error } = await supabase.from('events').insert([payload]).select();
         if (error) throw error;
         toast({ title: 'Success', description: 'Event created successfully' });
         if (sendPushAlert) {
-          broadcastPushNotification({
-            title: `New Event: ${payload.title}`,
-            body: payload.description ? payload.description.slice(0, 110) : 'Check out our newly announced church event.',
-            url: '/events',
-            tag: 'impact-event',
-          }).catch((pushErr) => console.warn('Automatic push broadcast failed:', pushErr));
+          try {
+            const eventId = insertedData?.[0]?.id || Date.now();
+            const dateStr = payload.event_date ? format(new Date(payload.event_date), 'MMMM do') : null;
+            const pushRes = await broadcastPushNotification({
+              title: `🎉 New Event: ${payload.title}`,
+              body: payload.description
+                ? payload.description.slice(0, 110)
+                : (dateStr ? `Join us on ${dateStr} for ${payload.title}! Tap for details.` : `Join us for ${payload.title} at RCCG Impact House.`),
+              url: '/events',
+              image: payload.image_url && !isVideo(payload.image_url) ? payload.image_url : undefined,
+              tag: `impact-event-${eventId}`,
+            });
+            if (pushRes.success) {
+              toast({
+                title: '🔔 Notification Broadcasted',
+                description: `Sent to ${pushRes.success_count ?? 0} active subscriber(s)!`,
+              });
+            } else if (pushRes.error) {
+              toast({
+                variant: 'destructive',
+                title: 'Push Notice',
+                description: pushRes.error,
+              });
+            }
+          } catch (pushErr: any) {
+            console.warn('Automatic push broadcast failed:', pushErr);
+          }
         }
       }
 
@@ -473,6 +510,14 @@ export default function AdminEvents() {
                   className="absolute top-4 right-4 flex gap-2"
                   onClick={e => e.stopPropagation()}
                 >
+                  <button
+                    onClick={() => handleQuickBroadcastEvent(event)}
+                    title="Broadcast push notification alert now"
+                    aria-label="Broadcast push notification"
+                    className="w-10 h-10 rounded-xl bg-primary/40 backdrop-blur-md border border-primary/50 flex items-center justify-center hover:bg-primary/60 text-white transition-colors shadow-lg"
+                  >
+                    <BellRing size={16} />
+                  </button>
                   <button
                     onClick={() => handleOpenModal(event)}
                     title="Edit event"
